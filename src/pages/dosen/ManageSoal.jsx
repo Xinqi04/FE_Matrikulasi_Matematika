@@ -4,9 +4,11 @@ import { Plus, Trash2, Pencil, Sparkles, Loader2, X, AlertCircle } from "lucide-
 import DashboardLayout from "../../components/DashboardLayout"
 import Modal from "../../components/Modal"
 import Badge from "../../components/Badge"
-import { getModul, getSoalBab, buatSoal, updateSoal, hapusSoal, suggestKonsep } from "../../api"
+import SoalGenerateReview from "../../components/SoalGenerateReview"
+import { getModul, getSoalBab, buatSoal, updateSoal, hapusSoal, suggestKonsep, generateSoal } from "../../api"
 
 const emptyForm = { teks_soal: "", tipe: "isian_singkat", jawaban_referensi: "", tingkat_kesulitan: "sedang", konsep: [] }
+const emptyGenerateForm = { jumlah: 5, tipe: "", tingkat_kesulitan: "" }
 
 const ManageSoal = () => {
   const [modul, setModul] = useState([])
@@ -20,6 +22,12 @@ const ManageSoal = () => {
   const [saving, setSaving] = useState(false)
   const [suggesting, setSuggesting] = useState(false)
   const [error, setError] = useState("")
+
+  const [generateModalOpen, setGenerateModalOpen] = useState(false)
+  const [generateForm, setGenerateForm] = useState(emptyGenerateForm)
+  const [generateJobId, setGenerateJobId] = useState(null)
+  const [generateSubmitting, setGenerateSubmitting] = useState(false)
+  const [generateError, setGenerateError] = useState("")
 
   useEffect(() => {
     getModul().then(setModul).catch(console.error)
@@ -129,6 +137,44 @@ const ManageSoal = () => {
     loadSoal(babId)
   }
 
+  const openGenerate = () => {
+    setGenerateForm(emptyGenerateForm)
+    setGenerateJobId(null)
+    setGenerateError("")
+    setGenerateModalOpen(true)
+  }
+
+  const closeGenerate = () => {
+    setGenerateModalOpen(false)
+    setGenerateJobId(null)
+    setGenerateError("")
+  }
+
+  const handleGenerateSubmit = async (e) => {
+    e.preventDefault()
+    setGenerateError("")
+    setGenerateSubmitting(true)
+    try {
+      const res = await generateSoal({
+        bab_id: babId,
+        jumlah: Number(generateForm.jumlah),
+        tipe: generateForm.tipe || null,
+        tingkat_kesulitan: generateForm.tingkat_kesulitan || null,
+      })
+      setGenerateJobId(res.job_id)
+    } catch (err) {
+      setGenerateError(err.message || "Gagal memulai generate soal")
+    } finally {
+      setGenerateSubmitting(false)
+    }
+  }
+
+  const handleGenerateSaved = () => {
+    loadSoal(babId)
+    setGenerateModalOpen(false)
+    setGenerateJobId(null)
+  }
+
   return (
     <DashboardLayout role="dosen" title="Kelola Soal" subtitle="Buat dan kelola soal per Bab.">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 grid sm:grid-cols-2 gap-4">
@@ -163,7 +209,13 @@ const ManageSoal = () => {
 
       {babId && (
         <>
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-2 mb-4">
+            <button
+              onClick={openGenerate}
+              className="flex items-center gap-2 bg-white border-2 border-blue-100 text-blue-600 px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all"
+            >
+              <Sparkles size={16} /> Generate dengan AI
+            </button>
             <button
               onClick={openCreate}
               className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 shadow-md shadow-blue-100 transition-all"
@@ -322,6 +374,84 @@ const ManageSoal = () => {
             {saving ? "Menyimpan..." : editTarget ? "Simpan Perubahan" : "Simpan Soal"}
           </button>
         </form>
+      </Modal>
+
+      <Modal open={generateModalOpen} onClose={closeGenerate} title="Generate Soal dengan AI">
+        <div className="space-y-4">
+          {generateError && (
+            <div className="bg-red-50 border border-red-100 p-3 rounded-xl flex items-center gap-2 text-red-600 text-sm font-medium">
+              <AlertCircle size={16} /> {generateError}
+            </div>
+          )}
+
+          {!generateJobId && (
+            <form onSubmit={handleGenerateSubmit} className="space-y-4">
+              <p className="text-xs text-slate-500">
+                LLM akan membuat draf soal berdasarkan konsep-konsep di Bab ini. Draf bisa ditinjau,
+                diedit, atau dibuang sebelum disimpan.
+              </p>
+
+              <div className="space-y-1">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah Soal</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  required
+                  value={generateForm.jumlah}
+                  onChange={(e) => setGenerateForm({ ...generateForm, jumlah: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all text-sm text-slate-700"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Tipe</label>
+                  <select
+                    value={generateForm.tipe}
+                    onChange={(e) => setGenerateForm({ ...generateForm, tipe: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none text-sm font-medium text-slate-700"
+                  >
+                    <option value="">Campuran</option>
+                    <option value="isian_singkat">Isian Singkat</option>
+                    <option value="esai">Esai</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Kesulitan</label>
+                  <select
+                    value={generateForm.tingkat_kesulitan}
+                    onChange={(e) => setGenerateForm({ ...generateForm, tingkat_kesulitan: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none text-sm font-medium text-slate-700"
+                  >
+                    <option value="">Campuran</option>
+                    <option value="mudah">Mudah</option>
+                    <option value="sedang">Sedang</option>
+                    <option value="sulit">Sulit</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={generateSubmitting}
+                className="w-full py-3 rounded-2xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-all disabled:bg-slate-200 disabled:text-slate-400 flex items-center justify-center gap-2"
+              >
+                {generateSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                {generateSubmitting ? "Memulai..." : "Generate"}
+              </button>
+            </form>
+          )}
+
+          {generateJobId && (
+            <SoalGenerateReview
+              jobId={generateJobId}
+              babId={babId}
+              onSaved={handleGenerateSaved}
+              onCancel={closeGenerate}
+            />
+          )}
+        </div>
       </Modal>
     </DashboardLayout>
   )

@@ -67,6 +67,10 @@ export const getSoalBab = (babId) => request("GET", `/dosen/soal?bab_id=${babId}
 export const updateSoal = (soalId, data) => request("PUT", `/dosen/soal/${soalId}`, data)
 export const hapusSoal = (soalId) => request("DELETE", `/dosen/soal/${soalId}`)
 
+export const generateSoal = (data) => request("POST", "/dosen/soal/generate", data)
+export const confirmGeneratedSoal = (bab_id, items) =>
+  request("POST", "/dosen/soal/generate/confirm", { bab_id, items })
+
 // ── Dosen: penilaian ────────────────────────────────────────────
 export const getPenilaian = (babId, status) => {
   const params = new URLSearchParams()

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
-import { ArrowLeft, PenLine, PlayCircle, Sparkles, Target, Youtube } from "lucide-react"
+import { ArrowLeft, BarChart3, CheckCircle2, PenLine, PlayCircle, Sparkles, TrendingDown, TrendingUp, Youtube } from "lucide-react"
 import DashboardLayout from "../../components/DashboardLayout"
 import Badge from "../../components/Badge"
+import StatCard from "../../components/StatCard"
 import { getHasilBab } from "../../api"
 
 const STATUS_META = {
@@ -54,6 +55,8 @@ const HasilBab = () => {
   const meta = STATUS_META[hasil?.status] || STATUS_META.belum_ada_nilai
   const bisaKerjakanUlang = hasil?.status === "remedial" || hasil?.status === "pengayaan"
   const konsepUrut = hasil ? Object.entries(hasil.nilai_per_konsep).sort((a, b) => a[1] - b[1]) : []
+  const perluDitingkatkan = konsepUrut.filter(([, nilai]) => nilai < 70)
+  const kekuatan = konsepUrut.filter(([, nilai]) => nilai >= 70)
 
   return (
     <DashboardLayout role="mahasiswa">
@@ -97,48 +100,89 @@ const HasilBab = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
-              <h2 className="font-bold text-gray-800 mb-4">Nilai per Konsep</h2>
-              <div className="space-y-2.5">
-                {konsepUrut.map(([konsep, nilai]) => {
-                  const lemah = nilai < 70
-                  return (
-                    <div key={konsep} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700 w-40 shrink-0 truncate" title={konsep}>{konsep}</span>
-                      <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(nilai, 100)}%` }}
-                          transition={{ duration: 0.6, ease: "easeOut" }}
-                          className={`h-full rounded-full ${lemah ? "bg-red-500" : "bg-green-500"}`}
-                        />
-                      </div>
-                      <span className={`text-sm font-black w-9 text-right shrink-0 ${lemah ? "text-red-600" : "text-green-600"}`}>
-                        {nilai}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
+              <StatCard
+                title="Rata-rata Nilai"
+                value={hasil.nilai_bab}
+                icon={<BarChart3 className="text-blue-600" size={20} />}
+                color="bg-blue-50"
+              />
+              <StatCard
+                title="Konsep Dikuasai"
+                value={`${kekuatan.length} / ${konsepUrut.length}`}
+                icon={<CheckCircle2 className="text-emerald-600" size={20} />}
+                color="bg-emerald-50"
+              />
             </motion.div>
           )}
 
-          {bisaKerjakanUlang && hasil.konsep_fokus.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-orange-50 border border-orange-100 rounded-2xl p-5 flex items-start gap-3"
-            >
-              <Target size={18} className="text-orange-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-orange-800 mb-2">Fokus belajar konsep-konsep ini</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {hasil.konsep_fokus.map((k) => <Badge key={k} variant="orange">{k}</Badge>)}
-                </div>
-              </div>
-            </motion.div>
+          {konsepUrut.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {perluDitingkatkan.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 ${kekuatan.length === 0 ? "lg:col-span-2" : ""}`}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingDown size={18} className="text-red-600" />
+                    <h2 className="font-bold text-gray-800">Perlu Ditingkatkan</h2>
+                  </div>
+                  <div className="space-y-4">
+                    {perluDitingkatkan.map(([konsep, nilai]) => (
+                      <div key={konsep}>
+                        <div className="flex items-center justify-between gap-3 mb-1.5">
+                          <span className="text-sm text-gray-700 truncate" title={konsep}>{konsep}</span>
+                          <span className="text-sm font-black text-red-600 shrink-0">{nilai}</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(nilai, 100)}%` }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            className="h-full rounded-full bg-red-500"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {kekuatan.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 ${perluDitingkatkan.length === 0 ? "lg:col-span-2" : ""}`}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp size={18} className="text-green-600" />
+                    <h2 className="font-bold text-gray-800">Kekuatan</h2>
+                  </div>
+                  <div className="space-y-4">
+                    {kekuatan.map(([konsep, nilai]) => (
+                      <div key={konsep}>
+                        <div className="flex items-center justify-between gap-3 mb-1.5">
+                          <span className="text-sm text-gray-700 truncate" title={konsep}>{konsep}</span>
+                          <span className="text-sm font-black text-green-600 shrink-0">{nilai}</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(nilai, 100)}%` }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            className="h-full rounded-full bg-green-500"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
           )}
 
           {hasil.status === "lanjut" && hasil.konsep_fokus.length > 0 && (

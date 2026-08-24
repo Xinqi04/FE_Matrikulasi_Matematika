@@ -90,7 +90,7 @@ const PdfExtractionReview = ({ jobId, onSaved }) => {
   const totalKonsep = draft.reduce((sum, u) => sum + u.konsep.length, 0)
 
   const removeKonsep = (unitId, nama) => {
-    setDraft((prev) => prev.map((u) => u.unit_id === unitId ? { ...u, konsep: u.konsep.filter((k) => k !== nama) } : u))
+    setDraft((prev) => prev.map((u) => u.unit_id === unitId ? { ...u, konsep: u.konsep.filter((k) => k.nama !== nama) } : u))
   }
 
   const addKonsep = (unitId) => {
@@ -98,8 +98,8 @@ const PdfExtractionReview = ({ jobId, onSaved }) => {
     if (!nama) return
     setDraft((prev) => prev.map((u) => {
       if (u.unit_id !== unitId) return u
-      if (u.konsep.some((k) => k.toLowerCase() === nama.toLowerCase())) return u
-      return { ...u, konsep: [...u.konsep, nama] }
+      if (u.konsep.some((k) => k.nama.toLowerCase() === nama.toLowerCase())) return u
+      return { ...u, konsep: [...u.konsep, { nama, deskripsi: "" }] }
     }))
     setInputs((prev) => ({ ...prev, [unitId]: "" }))
   }
@@ -156,9 +156,14 @@ const PdfExtractionReview = ({ jobId, onSaved }) => {
                 <span className="text-xs text-slate-400 italic">Tidak ada konsep -- tambahkan manual di bawah.</span>
               )}
               {u.konsep.map((k) => (
-                <span key={k} className="bg-white border border-slate-200 text-slate-600 pl-2.5 pr-1.5 py-1 rounded-lg flex items-center gap-1.5 text-[11px] font-bold">
-                  {k}
-                  <button type="button" onClick={() => removeKonsep(u.unit_id, k)} className="w-4 h-4 flex items-center justify-center text-slate-300 hover:text-red-600 transition-colors">
+                <span key={k.nama} title={k.deskripsi || undefined} className="bg-white border border-slate-200 text-slate-600 pl-2.5 pr-1.5 py-1 rounded-lg flex items-center gap-1.5 text-[11px] font-bold max-w-full">
+                  <span className="flex flex-col leading-tight">
+                    <span>{k.nama}</span>
+                    {k.deskripsi && (
+                      <span className="text-[10px] font-normal text-slate-400 whitespace-normal">{k.deskripsi}</span>
+                    )}
+                  </span>
+                  <button type="button" onClick={() => removeKonsep(u.unit_id, k.nama)} className="w-4 h-4 shrink-0 flex items-center justify-center text-slate-300 hover:text-red-600 transition-colors">
                     <X size={12} />
                   </button>
                 </span>
