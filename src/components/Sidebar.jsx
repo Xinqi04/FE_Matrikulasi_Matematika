@@ -16,7 +16,7 @@ const dosenMenu = [
 
 const mahasiswaMenu = [
   { name: "Dashboard", path: "/mahasiswa/dashboard", icon: <LayoutDashboard size={20} /> },
-  { name: "Ujian", path: "/mahasiswa/ujian", icon: <PenLine size={20} /> },
+  { name: "Pilih Modul", path: "/mahasiswa/ujian", icon: <PenLine size={20} /> },
 ]
 
 const Sidebar = ({ isOpen, setIsOpen, role = "dosen" }) => {
@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, setIsOpen, role = "dosen" }) => {
   const location = useLocation()
 
   const menuItems = role === "mahasiswa" ? mahasiswaMenu : dosenMenu
-  const title = role === "mahasiswa" ? "Dashboard Mahasiswa" : "Dashboard Dosen"
+  const title = "MathDasar"
 
   const handleLogout = () => {
     sessionStorage.clear()
@@ -41,23 +41,23 @@ const Sidebar = ({ isOpen, setIsOpen, role = "dosen" }) => {
       )}
 
       <aside className={`
-        fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out shadow-[4px_0_24px_rgba(17,24,39,0.025)]
         w-64 lg:translate-x-0
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
-        <div className="p-6 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-blue-600 flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg shrink-0 flex items-center justify-center text-white">
+        <div className="px-5 py-6 flex justify-between items-center border-b border-gray-100">
+          <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-700 rounded-xl shrink-0 flex items-center justify-center text-white shadow-sm">
               {role === "mahasiswa" ? <GraduationCap size={18} /> : <LayoutDashboard size={18} />}
             </div>
-            <span className="text-base leading-tight">{title}</span>
+            <span className="text-base leading-tight font-display">{title}</span>
           </h1>
           <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-gray-500">
             <X size={24} />
           </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto h-[calc(100vh-160px)]">
+        <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto h-[calc(100vh-166px)]">
           {menuItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path)
             return (
@@ -67,9 +67,9 @@ const Sidebar = ({ isOpen, setIsOpen, role = "dosen" }) => {
                   navigate(item.path)
                   setIsOpen(false)
                 }}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-blue-50 text-blue-600 font-semibold"
+                    ? "bg-blue-50 text-blue-700 font-semibold shadow-[inset_3px_0_0_#0D9488]"
                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                 }`}
               >

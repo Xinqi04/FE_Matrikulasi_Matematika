@@ -1,261 +1,51 @@
 import { useEffect, useState } from "react"
-import { useParams, useNavigate, useLocation } from "react-router-dom"
-import { motion } from "framer-motion"
-import { ArrowLeft, BarChart3, CheckCircle2, PenLine, PlayCircle, Sparkles, TrendingDown, TrendingUp, Youtube } from "lucide-react"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { motion as Motion } from "framer-motion"
+import { ArrowLeft, ArrowRight, BarChart3, CheckCircle2, Loader2, RefreshCcw, Target, TrendingUp } from "lucide-react"
 import DashboardLayout from "../../components/DashboardLayout"
-import Badge from "../../components/Badge"
-import StatCard from "../../components/StatCard"
 import { getHasilBab } from "../../api"
 
-const STATUS_META = {
-  remedial: { label: "Perlu Remedial", color: "from-red-500 to-orange-500" },
-  pengayaan: { label: "Perlu Pengayaan", color: "from-amber-500 to-yellow-500" },
-  lanjut: { label: "Lulus", color: "from-green-500 to-emerald-500" },
-  belum_ada_nilai: { label: "Belum Ada Nilai", color: "from-gray-400 to-gray-500" },
-}
-
-const ScoreGauge = ({ value, size = 128 }) => {
-  const stroke = 11
-  const radius = (size - stroke) / 2
-  const circumference = 2 * Math.PI * radius
-  const pct = Math.max(0, Math.min(100, value)) / 100
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.25)" strokeWidth={stroke} fill="none" />
-        <motion.circle
-          cx={size / 2} cy={size / 2} r={radius} stroke="white" strokeWidth={stroke} fill="none"
-          strokeLinecap="round" strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: circumference * (1 - pct) }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-black text-white leading-none">{value}</span>
-        <span className="text-[10px] font-bold text-white/70 mt-1">/ 100</span>
-      </div>
-    </div>
-  )
+const META = {
+  remedial: { label: "Perlu Remedial", color: "border-red-100 bg-red-50 text-red-700", note: "Pelajari rekomendasi lalu kerjakan ulang latihan bab." },
+  pengayaan: { label: "Selesai · Perlu Penguatan", color: "border-amber-100 bg-amber-50 text-amber-700", note: "Bab dinyatakan selesai. Beberapa konsep tetap perlu dikuatkan." },
+  lanjut: { label: "Lulus", color: "border-green-100 bg-green-50 text-green-700", note: "Semua konsep utama sudah mencapai batas ketuntasan." },
 }
 
 const HasilBab = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const modulId = location.state?.modulId
+  const state = location.state || {}
   const [hasil, setHasil] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [brokenThumbs, setBrokenThumbs] = useState({})
+  const [error, setError] = useState("")
 
-  useEffect(() => {
-    getHasilBab(id).then(setHasil).catch(console.error).finally(() => setLoading(false))
-  }, [id])
+  useEffect(() => { let active = true; getHasilBab(id).then((value) => active && setHasil(value)).catch((err) => active && setError(err.message)); return () => { active = false } }, [id])
 
-  const meta = STATUS_META[hasil?.status] || STATUS_META.belum_ada_nilai
-  const bisaKerjakanUlang = hasil?.status === "remedial" || hasil?.status === "pengayaan"
-  const konsepUrut = hasil ? Object.entries(hasil.nilai_per_konsep).sort((a, b) => a[1] - b[1]) : []
-  const perluDitingkatkan = konsepUrut.filter(([, nilai]) => nilai < 70)
-  const kekuatan = konsepUrut.filter(([, nilai]) => nilai >= 70)
+  if (error) return <DashboardLayout role="mahasiswa"><div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center text-red-600">{error}</div></DashboardLayout>
+  if (!hasil) return <DashboardLayout role="mahasiswa"><div className="flex items-center justify-center gap-2 rounded-2xl bg-white p-12 text-gray-400"><Loader2 className="animate-spin" size={18} /> Memuat analisis...</div></DashboardLayout>
+  if (hasil.status === "belum_ada_nilai") return <DashboardLayout role="mahasiswa"><div className="rounded-2xl border border-amber-100 bg-amber-50 p-8 text-center text-amber-700">Jawaban masih menunggu penilaian dosen. Analisis akan tersedia setelah nilai selesai.</div></DashboardLayout>
 
-  return (
-    <DashboardLayout role="mahasiswa">
-      <button
-        onClick={() => navigate(modulId ? `/mahasiswa/ujian/${modulId}` : "/mahasiswa/ujian")}
-        className="flex items-center gap-2 text-gray-400 hover:text-blue-600 transition-colors mb-6 font-medium text-sm"
-      >
-        <ArrowLeft size={16} /> Kembali ke Daftar Bab
-      </button>
+  const konsep = Object.entries(hasil.nilai_per_konsep || {}).sort((a, b) => a[1] - b[1])
+  const kuat = konsep.filter(([, nilai]) => nilai >= 70)
+  const lemah = konsep.filter(([, nilai]) => nilai < 70)
+  const meta = META[hasil.status] || META.lanjut
 
-      {loading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Memuat hasil...</div>
-      ) : !hasil || hasil.status === "belum_ada_nilai" ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Belum ada nilai untuk bab ini.</div>
-      ) : (
-        <div className="space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`bg-gradient-to-br ${meta.color} rounded-3xl p-6 md:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center gap-6`}
-          >
-            <ScoreGauge value={hasil.nilai_bab} />
-            <div className="flex-1 flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 w-full">
-              <div className="text-center sm:text-left">
-                <p className="text-xs font-black uppercase tracking-widest opacity-80 mb-1">Status Capaian</p>
-                <h1 className="text-2xl md:text-3xl font-black">{meta.label}</h1>
-              </div>
-              {bisaKerjakanUlang && (
-                <button
-                  onClick={() => navigate(`/mahasiswa/bab/${id}`, { state: { modulId } })}
-                  className="flex items-center gap-2 bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl text-sm font-bold transition-all shrink-0"
-                >
-                  <PenLine size={16} /> Kerjakan Ulang
-                </button>
-              )}
-            </div>
-          </motion.div>
+  return <DashboardLayout role="mahasiswa">
+    <button onClick={() => navigate(state.modulId ? `/mahasiswa/modul/${state.modulId}` : "/mahasiswa/dashboard")} className="mb-5 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-700"><ArrowLeft size={16} /> Kembali ke Modul</button>
+    <header className="mb-7"><p className="text-xs font-bold uppercase tracking-widest text-blue-700">{state.modulNama || "Matrikulasi"}</p><h1 className="mt-1 text-2xl font-semibold text-gray-900 md:text-3xl">Analisis Hasil Belajarmu</h1><p className="mt-2 text-sm text-gray-500">Ringkasan penguasaan konsep pada {state.babNama || "bab ini"}.</p></header>
 
-          {konsepUrut.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-            >
-              <StatCard
-                title="Rata-rata Nilai"
-                value={hasil.nilai_bab}
-                icon={<BarChart3 className="text-blue-600" size={20} />}
-                color="bg-blue-50"
-              />
-              <StatCard
-                title="Konsep Dikuasai"
-                value={`${kekuatan.length} / ${konsepUrut.length}`}
-                icon={<CheckCircle2 className="text-emerald-600" size={20} />}
-                color="bg-emerald-50"
-              />
-            </motion.div>
-          )}
+    <section className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <Motion.article initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-gray-100 bg-white p-7 text-center shadow-sm"><p className="text-xs font-bold uppercase text-gray-500">Skor Bab</p><p className="my-5 text-6xl font-semibold text-blue-800">{hasil.nilai_bab}<span className="text-lg">/100</span></p><span className={`inline-flex rounded-lg border px-3 py-1 text-xs font-bold ${meta.color}`}>{meta.label}</span><p className="mt-4 text-xs leading-5 text-gray-500">{meta.note}</p></Motion.article>
+      <article className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"><div className="mb-6 flex items-center gap-2"><BarChart3 size={18} className="text-blue-700" /><h2 className="font-semibold text-gray-900">Penguasaan per Konsep</h2></div><div className="space-y-5">{konsep.map(([nama, nilai]) => <div key={nama}><div className="mb-2 flex justify-between text-xs"><span className="font-semibold text-gray-700">{nama}</span><strong>{nilai}%</strong></div><div className="h-2 overflow-hidden rounded-full bg-gray-100"><Motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(nilai, 100)}%` }} className={`h-full rounded-full ${nilai >= 70 ? "bg-green-500" : "bg-amber-500"}`} /></div></div>)}</div></article>
+    </section>
 
-          {konsepUrut.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {perluDitingkatkan.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 ${kekuatan.length === 0 ? "lg:col-span-2" : ""}`}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingDown size={18} className="text-red-600" />
-                    <h2 className="font-bold text-gray-800">Perlu Ditingkatkan</h2>
-                  </div>
-                  <div className="space-y-4">
-                    {perluDitingkatkan.map(([konsep, nilai]) => (
-                      <div key={konsep}>
-                        <div className="flex items-center justify-between gap-3 mb-1.5">
-                          <span className="text-sm text-gray-700 truncate" title={konsep}>{konsep}</span>
-                          <span className="text-sm font-black text-red-600 shrink-0">{nilai}</span>
-                        </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${Math.min(nilai, 100)}%` }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="h-full rounded-full bg-red-500"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+    <section className="mt-5 grid gap-4 lg:grid-cols-2">
+      <article className="rounded-2xl border border-green-100 bg-white p-5"><div className="mb-4 flex items-center gap-2 text-green-700"><TrendingUp size={18} /><h2 className="font-semibold">Kekuatanmu</h2></div>{kuat.length ? <div className="space-y-2">{kuat.map(([nama, nilai]) => <div key={nama} className="flex items-center justify-between rounded-xl bg-green-50 p-3 text-sm"><span>{nama}</span><strong className="text-green-700">{nilai}%</strong></div>)}</div> : <p className="text-sm text-gray-400">Belum ada konsep yang mencapai batas ketuntasan.</p>}</article>
+      <article className="rounded-2xl border border-amber-100 bg-white p-5"><div className="mb-4 flex items-center gap-2 text-amber-700"><Target size={18} /><h2 className="font-semibold">Masih Perlu Dikuatkan</h2></div>{lemah.length ? <div className="space-y-2">{lemah.map(([nama, nilai]) => <div key={nama} className="flex items-center justify-between rounded-xl bg-amber-50 p-3 text-sm"><span>{nama}</span><strong className="text-amber-700">{nilai}%</strong></div>)}</div> : <p className="flex items-center gap-2 text-sm text-green-700"><CheckCircle2 size={17} /> Semua konsep sudah tuntas.</p>}</article>
+    </section>
 
-              {kekuatan.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 ${perluDitingkatkan.length === 0 ? "lg:col-span-2" : ""}`}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp size={18} className="text-green-600" />
-                    <h2 className="font-bold text-gray-800">Kekuatan</h2>
-                  </div>
-                  <div className="space-y-4">
-                    {kekuatan.map(([konsep, nilai]) => (
-                      <div key={konsep}>
-                        <div className="flex items-center justify-between gap-3 mb-1.5">
-                          <span className="text-sm text-gray-700 truncate" title={konsep}>{konsep}</span>
-                          <span className="text-sm font-black text-green-600 shrink-0">{nilai}</span>
-                        </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${Math.min(nilai, 100)}%` }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="h-full rounded-full bg-green-500"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          )}
-
-          {hasil.status === "lanjut" && hasil.konsep_fokus.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex items-start gap-3"
-            >
-              <Sparkles size={18} className="text-blue-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-blue-800 mb-2">Bersiap untuk Bab berikutnya</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {hasil.konsep_fokus.map((k) => <Badge key={k} variant="blue">{k}</Badge>)}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <PlayCircle size={18} className="text-blue-600" />
-              <h2 className="font-bold text-gray-800">Rekomendasi Video</h2>
-            </div>
-
-            {hasil.rekomendasi_video.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Belum ada rekomendasi video.</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {hasil.rekomendasi_video.map((v, idx) => (
-                  <motion.a
-                    key={v.video_id}
-                    href={v.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-blue-100 transition-all block"
-                  >
-                    <div className="relative aspect-video bg-slate-100">
-                      {brokenThumbs[v.video_id] ? (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                          <Youtube size={32} />
-                        </div>
-                      ) : (
-                        <img
-                          src={v.thumbnail || `https://img.youtube.com/vi/${v.video_id}/mqdefault.jpg`}
-                          alt=""
-                          className="w-full h-full object-cover"
-                          onError={() => setBrokenThumbs((prev) => ({ ...prev, [v.video_id]: true }))}
-                        />
-                      )}
-                      <span className="absolute top-2 right-2">
-                        <Badge variant="blue">{Math.round(v.jaccard * 100)}% cocok</Badge>
-                      </span>
-                    </div>
-                    <div className="p-5">
-                      <p className="font-bold text-sm text-gray-900 mb-1 line-clamp-2">{v.judul}</p>
-                      <p className="text-xs text-gray-400 mb-3">{v.channel || "-"}</p>
-                      <div className="flex flex-wrap gap-1">
-                        {v.konsep_cocok.map((k) => <Badge key={k} variant="green">{k}</Badge>)}
-                      </div>
-                    </div>
-                  </motion.a>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </DashboardLayout>
-  )
+    <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">{hasil.status === "remedial" && <button onClick={() => navigate(`/mahasiswa/bab/${id}`, { state })} className="flex h-12 items-center justify-center gap-2 rounded-xl border border-blue-200 px-5 text-sm font-bold text-blue-700"><RefreshCcw size={16} /> Kerjakan Ulang</button>}<button onClick={() => navigate(`/mahasiswa/bab/${id}/rekomendasi`, { state })} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 text-sm font-bold text-white">{hasil.status === "lanjut" ? "Lihat Materi Lanjutan" : "Lihat Materi Penguatan"} <ArrowRight size={16} /></button></div>
+  </DashboardLayout>
 }
 
 export default HasilBab

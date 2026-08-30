@@ -16,12 +16,12 @@ const DashboardLayout = ({ role = "dosen", title, subtitle, children }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50 text-gray-900">
+    <div className="flex min-h-screen bg-[#F6F7F8] text-gray-900">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} role={role} />
 
       <main className="flex-1 lg:ml-64 transition-all duration-300">
-        <header className="lg:hidden bg-white border-b border-gray-200 p-4 sticky top-0 z-30 flex justify-between items-center">
-          <h1 className="font-bold text-blue-600">Matrikulasi KG</h1>
+        <header className="lg:hidden bg-white/90 backdrop-blur-xl border-b border-gray-200 px-4 py-3 sticky top-0 z-30 flex justify-between items-center">
+          <h1 className="font-display font-semibold text-blue-700">MathDasar</h1>
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 bg-gray-100 rounded-lg"
@@ -30,11 +30,11 @@ const DashboardLayout = ({ role = "dosen", title, subtitle, children }) => {
           </button>
         </header>
 
-        <div className="hidden lg:flex justify-end px-8 pt-6">
+        <div className="hidden lg:flex justify-end px-8 pt-5">
           <div className="relative">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl pl-3 pr-4 py-2 shadow-sm hover:shadow-md transition-shadow"
+              className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl pl-2.5 pr-4 py-2 shadow-sm hover:border-blue-200 hover:shadow-md transition-all"
             >
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                 <User size={16} />
@@ -61,9 +61,9 @@ const DashboardLayout = ({ role = "dosen", title, subtitle, children }) => {
 
         <div className="p-4 md:p-8 max-w-7xl mx-auto">
           {(title || subtitle) && (
-            <div className="mb-8">
-              {title && <h1 className="text-xl md:text-2xl font-bold">{title}</h1>}
-              {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+            <div className="mb-8 max-w-3xl">
+              {title && <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">{title}</h1>}
+              {subtitle && <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">{subtitle}</p>}
             </div>
           )}
           {children}

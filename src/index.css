@@ -1,1 +1,107 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap");
 @import "tailwindcss";
+
+/*
+ * MathDasar design tokens
+ * The existing UI uses Tailwind's blue scale for primary actions. Redefining
+ * that scale here applies the teal brand consistently without brittle per-page
+ * overrides. See DESIGN.md for usage rules.
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", "Inter", ui-sans-serif, sans-serif;
+
+  --color-blue-50: #e6f6f5;
+  --color-blue-100: #c8ecea;
+  --color-blue-200: #9bdedb;
+  --color-blue-300: #5eead4;
+  --color-blue-400: #2dd4bf;
+  --color-blue-500: #14b8a6;
+  --color-blue-600: #0d9488;
+  --color-blue-700: #0f766e;
+  --color-blue-800: #115e59;
+  --color-blue-900: #134e4a;
+
+  --color-gray-50: #f3f4f6;
+  --color-gray-100: #e6e9ec;
+  --color-gray-200: #d1d5db;
+  --color-gray-300: #b5bec8;
+  --color-gray-400: #6b7280;
+  --color-gray-500: #52606d;
+  --color-gray-600: #465361;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+}
+
+:root {
+  color: #111827;
+  background: #f6f7f8;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --brand-deep: #0d9488;
+  --brand-dark: #0f766e;
+  --brand-mid: #14b8a6;
+  --brand-soft: #5eead4;
+  --brand-mist: #e6f6f5;
+  --surface: #ffffff;
+  --canvas: #f6f7f8;
+  --ink: #111827;
+  --muted: #6b7280;
+  --border: #e6e9ec;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--canvas);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 92% 4%, rgb(94 234 212 / 8%), transparent 28rem),
+    var(--canvas);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Poppins", "Inter", ui-sans-serif, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(20 184 166 / 22%);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #111827;
+  background: #99f6e4;
+}

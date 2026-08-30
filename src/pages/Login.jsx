@@ -1,144 +1,161 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
-import { BrainCircuit, AlertCircle, Loader2, ArrowRight } from "lucide-react"
+import { motion as Motion, AnimatePresence } from "framer-motion"
+import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react"
 import { login } from "../api"
 
 const Login = () => {
   const navigate = useNavigate()
-
-  const [email, setEmail] = useState("")
+  const rememberedEmail = localStorage.getItem("rememberedEmail") || ""
+  const [email, setEmail] = useState(rememberedEmail)
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail))
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
+  const handleLogin = async (event) => {
+    event.preventDefault()
     setError("")
     setLoading(true)
 
     try {
       const data = await login(email, password)
+      if (rememberMe) localStorage.setItem("rememberedEmail", email)
+      else localStorage.removeItem("rememberedEmail")
+
       sessionStorage.setItem("token", data.access_token)
       sessionStorage.setItem("user", JSON.stringify({ nama: data.nama, role: data.role }))
-
       navigate(data.role === "dosen" ? "/dosen/dashboard" : "/mahasiswa/dashboard")
     } catch (err) {
-      setError(err.message || "Login gagal. Periksa kembali email dan password anda.")
+      setError(err.message || "Login gagal. Periksa kembali email dan password Anda.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] relative overflow-hidden p-4">
+    <main className="relative min-h-screen overflow-x-hidden bg-[#F8F5F0] bg-[url('/img/bg-login.png')] bg-cover bg-[position:38%_center] lg:bg-center">
+      <div className="absolute inset-0 bg-white/30 sm:bg-white/15 lg:hidden" aria-hidden="true" />
 
-      {/* BACKGROUND DECORATION */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]" />
+      <div className="relative z-10 grid min-h-screen grid-rows-[1fr_auto] px-4 py-6 sm:px-8 sm:py-8 lg:grid-cols-[43%_57%] lg:grid-rows-[1fr_auto] lg:px-0 lg:py-0">
+        <div className="hidden lg:block" aria-hidden="true" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="w-full max-w-[450px] z-10"
-      >
-        {/* LOGO & BRANDING */}
-        <div className="text-center mb-10">
-          <motion.div
-            initial={{ scale: 0.5 }}
-            animate={{ scale: 1 }}
-            className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-[2rem] shadow-xl shadow-blue-200 mb-6"
+        <section className="flex items-center justify-center lg:px-12 xl:px-20 2xl:px-28">
+          <Motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+            className="w-full max-w-[540px] rounded-[28px] border border-white/90 bg-white/94 px-5 py-8 shadow-[0_18px_55px_rgba(38,54,56,0.13)] backdrop-blur-md sm:px-9 sm:py-10 lg:rounded-[42px] lg:px-10 lg:py-12 xl:px-12 xl:py-14"
           >
-            <BrainCircuit className="w-10 h-10 text-white" />
-          </motion.div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tight mb-2">Matrikulasi</h1>
-          <p className="text-slate-500 font-medium tracking-wide uppercase text-[10px]">Matematika Berbasis Knowledge Graph</p>
-        </div>
+            <header className="mb-8 flex items-center gap-4 sm:gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#F6E3CC] bg-[#FFF5E9] text-gray-900 sm:h-16 sm:w-16">
+                <UserRound size={28} strokeWidth={1.8} aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl font-semibold leading-tight text-gray-900 sm:text-2xl">Selamat datang kembali!</h1>
+                <p className="mt-1 text-sm leading-relaxed text-gray-500 sm:text-[15px]">Masuk untuk melanjutkan perjalanan belajarmu</p>
+              </div>
+            </header>
 
-        {/* LOGIN CARD */}
-        <div className="bg-white/80 backdrop-blur-xl p-10 rounded-[3rem] shadow-2xl shadow-slate-200/50 border border-white relative">
-
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="mb-6 overflow-hidden"
-              >
-                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-medium">
-                  <AlertCircle size={18} />
-                  {error}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="space-y-2"
-            >
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
-              <input
-                type="email"
-                placeholder="nama@kampus.ac.id"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold text-slate-700 placeholder:font-medium"
-                required
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-2"
-            >
-              <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
-              <input
-                type="password"
-                placeholder="Masukkan Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all font-bold text-slate-700 placeholder:font-medium"
-                required
-              />
-            </motion.div>
-
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              type="submit"
-              disabled={loading}
-              className={`w-full py-5 rounded-[2rem] font-black tracking-widest uppercase flex items-center justify-center gap-3 transition-all shadow-xl ${
-                loading
-                ? "bg-slate-100 text-slate-400"
-                : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 hover:scale-[1.02] active:scale-95"
-              }`}
-            >
-              {loading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <>
-                  Masuk Sistem <ArrowRight size={20} strokeWidth={3} />
-                </>
+            <AnimatePresence initial={false}>
+              {error && (
+                <Motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  role="alert"
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm font-medium text-red-600">
+                    <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                </Motion.div>
               )}
-            </motion.button>
-          </form>
-        </div>
+            </AnimatePresence>
 
-        <p className="text-center text-slate-400 text-[11px] font-medium mt-8">
-          &copy; {new Date().getFullYear()} Matrikulasi Matematika KG. All rights reserved.
-        </p>
-      </motion.div>
-    </div>
+            <form onSubmit={handleLogin} className="space-y-5 sm:space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="email" className="ml-1 block text-xs font-bold uppercase tracking-wide text-gray-800">Email</label>
+                <div className="relative">
+                  <Mail size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="nama@kampus.ac.id"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="h-14 w-full rounded-xl border border-gray-100 bg-white pl-13 pr-4 text-sm font-medium text-gray-700 shadow-[0_5px_18px_rgba(17,24,39,0.035)] outline-none transition placeholder:font-normal placeholder:text-gray-400 hover:border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 sm:h-[58px] sm:text-base"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="ml-1 block text-xs font-bold uppercase tracking-wide text-gray-800">Password</label>
+                <div className="relative">
+                  <LockKeyhole size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Masukkan Password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    className="h-14 w-full rounded-xl border border-gray-100 bg-white pl-13 pr-13 text-sm font-medium text-gray-700 shadow-[0_5px_18px_rgba(17,24,39,0.035)] outline-none transition placeholder:font-normal placeholder:text-gray-400 hover:border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 sm:h-[58px] sm:text-base"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 transition hover:bg-blue-50 hover:text-blue-700"
+                    aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                    aria-pressed={showPassword}
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-4 text-xs sm:text-sm">
+                <label className="flex cursor-pointer items-center gap-2.5 font-semibold text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(event) => setRememberMe(event.target.checked)}
+                    className="h-5 w-5 rounded-md border-2 border-gray-300 accent-[#0D9488]"
+                  />
+                  Ingat saya
+                </label>
+                <button type="button" className="font-semibold text-blue-700 transition hover:text-blue-800 hover:underline">Lupa password?</button>
+              </div>
+
+              <Motion.button
+                whileTap={{ scale: 0.985 }}
+                type="submit"
+                disabled={loading}
+                className={`flex h-14 w-full items-center justify-center gap-4 rounded-xl text-sm font-bold uppercase tracking-wide text-white shadow-[0_10px_24px_rgba(13,148,136,0.18)] transition sm:h-[60px] sm:text-base ${
+                  loading ? "cursor-not-allowed bg-gray-300 shadow-none" : "bg-blue-600 hover:bg-blue-700 hover:shadow-[0_12px_28px_rgba(13,148,136,0.26)]"
+                }`}
+              >
+                {loading ? (
+                  <><Loader2 className="animate-spin" size={20} /> Memproses...</>
+                ) : (
+                  <>Masuk Sistem <ArrowRight size={22} strokeWidth={2.2} /></>
+                )}
+              </Motion.button>
+            </form>
+          </Motion.div>
+        </section>
+
+        <footer className="col-span-full pt-7 text-center text-[11px] leading-relaxed text-gray-600 sm:text-xs lg:absolute lg:bottom-6 lg:left-[43%] lg:right-0 lg:pt-0">
+          <p>&copy; {new Date().getFullYear()} Matrikulasi Matematika KG. All rights reserved.</p>
+          <p className="mt-1">Versi 1.0.0</p>
+        </footer>
+      </div>
+    </main>
   )
 }
 

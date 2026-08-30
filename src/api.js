@@ -1,5 +1,6 @@
-// Base URL for the FastAPI backend
-const BASE_URL = "http://localhost:8000"
+// Gunakan host yang sama dengan halaman agar request tetap menuju komputer server ketika
+// frontend dibuka lewat alamat LAN (localhost di browser selalu berarti perangkat pengguna).
+const BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000`
 
 function getToken() {
   return sessionStorage.getItem("token") || ""
@@ -20,7 +21,12 @@ async function request(method, path, body = null, { isForm = false } = {}) {
     }
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, opts)
+  let res
+  try {
+    res = await fetch(`${BASE_URL}${path}`, opts)
+  } catch {
+    throw new Error(`Backend tidak dapat dihubungi di ${BASE_URL}. Pastikan server backend sedang berjalan.`)
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }))
@@ -65,6 +71,7 @@ export const suggestKonsep = (bab_id, teks_soal) =>
 export const buatSoal = (data) => request("POST", "/dosen/soal", data)
 export const getSoalBab = (babId) => request("GET", `/dosen/soal?bab_id=${babId}`)
 export const updateSoal = (soalId, data) => request("PUT", `/dosen/soal/${soalId}`, data)
+export const setSoalUjian = (soalId, untukUjian) => request("PUT", `/dosen/soal/${soalId}/ujian`, { untuk_ujian: untukUjian })
 export const hapusSoal = (soalId) => request("DELETE", `/dosen/soal/${soalId}`)
 
 export const generateSoal = (data) => request("POST", "/dosen/soal/generate", data)
@@ -83,6 +90,8 @@ export const beriNilai = (jawabanId, nilai) =>
   request("PUT", `/dosen/penilaian/${jawabanId}`, { nilai })
 export const beriNilaiBatch = (items) =>
   request("POST", "/dosen/penilaian/batch", { nilai: items })
+export const getPenilaianUjianModul = (status) => request("GET", `/dosen/penilaian-ujian-modul${status ? `?status=${status}` : ""}`)
+export const beriNilaiUjianModulBatch = (items) => request("POST", "/dosen/penilaian-ujian-modul/batch", { nilai: items })
 
 // ── Dosen: materi (PDF & YouTube) ──────────────────────────────
 export const extractPdf = (file, nama_domain) => {
@@ -97,6 +106,12 @@ export const confirmPdfExtraction = (job_id, unit) =>
 
 export const discardPdfDraft = (jobId) => request("DELETE", `/pdf/draft/${jobId}`)
 export const hapusModul = (modulId) => request("DELETE", `/pdf/modul/${modulId}`)
+export const updateNamaModul = (modulId, nama) => request("PUT", `/dosen/struktur/modul/${modulId}`, { nama })
+export const tambahBab = (modulId, data) => request("POST", `/dosen/struktur/modul/${modulId}/bab`, data)
+export const updateNamaBab = (babId, nama) => request("PUT", `/dosen/struktur/bab/${babId}`, { nama })
+export const tambahKonsep = (ownerId, data) => request("POST", `/dosen/struktur/unit/${ownerId}/konsep`, data)
+export const updateNamaKonsep = (ownerId, namaLama, namaBaru) =>
+  request("PUT", `/dosen/struktur/unit/${ownerId}/konsep`, { nama_lama: namaLama, nama_baru: namaBaru })
 
 export const classifyYoutube = (link, materi_query) =>
   request("POST", "/youtube/classify", { link, materi_query })
@@ -119,3 +134,6 @@ export const getSoalMahasiswa = (babId) => request("GET", `/mahasiswa/bab/${babI
 export const submitJawaban = (babId, jawaban) =>
   request("POST", `/mahasiswa/bab/${babId}/jawaban`, { jawaban })
 export const getHasilBab = (babId) => request("GET", `/mahasiswa/bab/${babId}/hasil`)
+export const mulaiUjianModul = (modulId, jenis) => request("POST", `/mahasiswa/modul/${modulId}/ujian/mulai`, { jenis })
+export const submitUjianModul = (modulId, attemptId, jawaban) =>
+  request("POST", `/mahasiswa/modul/${modulId}/ujian/jawaban`, { attempt_id: attemptId, jawaban })

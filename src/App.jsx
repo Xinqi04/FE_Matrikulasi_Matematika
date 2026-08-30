@@ -14,9 +14,11 @@ import Jobs from "./pages/dosen/Jobs"
 
 import StudentDashboard from "./pages/mahasiswa/StudentDashboard"
 import UjianModul from "./pages/mahasiswa/UjianModul"
-import UjianBab from "./pages/mahasiswa/UjianBab"
 import BabSoal from "./pages/mahasiswa/BabSoal"
+import ModulUjianDetail from "./pages/mahasiswa/ModulUjianDetail"
+import UjianTahap from "./pages/mahasiswa/UjianTahap"
 import HasilBab from "./pages/mahasiswa/HasilBab"
+import RekomendasiBab from "./pages/mahasiswa/RekomendasiBab"
 
 function App() {
   return (
@@ -37,9 +39,11 @@ function App() {
         {/* Route Mahasiswa */}
         <Route path="/mahasiswa/dashboard" element={<ProtectedRoute role="mahasiswa"><StudentDashboard /></ProtectedRoute>} />
         <Route path="/mahasiswa/ujian" element={<ProtectedRoute role="mahasiswa"><UjianModul /></ProtectedRoute>} />
-        <Route path="/mahasiswa/ujian/:modulId" element={<ProtectedRoute role="mahasiswa"><UjianBab /></ProtectedRoute>} />
+        <Route path="/mahasiswa/modul/:id" element={<ProtectedRoute role="mahasiswa"><ModulUjianDetail /></ProtectedRoute>} />
+        <Route path="/mahasiswa/modul/:id/ujian/:jenis" element={<ProtectedRoute role="mahasiswa"><UjianTahap /></ProtectedRoute>} />
         <Route path="/mahasiswa/bab/:id" element={<ProtectedRoute role="mahasiswa"><BabSoal /></ProtectedRoute>} />
         <Route path="/mahasiswa/bab/:id/hasil" element={<ProtectedRoute role="mahasiswa"><HasilBab /></ProtectedRoute>} />
+        <Route path="/mahasiswa/bab/:id/rekomendasi" element={<ProtectedRoute role="mahasiswa"><RekomendasiBab /></ProtectedRoute>} />
 
       </Routes>
     </BrowserRouter>

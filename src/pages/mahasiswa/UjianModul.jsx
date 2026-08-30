@@ -1,77 +1,33 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
-import { BookOpen, ChevronRight, PartyPopper } from "lucide-react"
+import { ArrowRight, BookOpen, CheckCircle2 } from "lucide-react"
 import DashboardLayout from "../../components/DashboardLayout"
 import { getMahasiswaDashboard } from "../../api"
 
 const UjianModul = () => {
   const navigate = useNavigate()
-  const [modul, setModul] = useState([])
-  const [progressMap, setProgressMap] = useState({})
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState(null)
 
-  useEffect(() => {
-    getMahasiswaDashboard()
-      .then((data) => {
-        setModul(data.modul)
-        const map = {}
-        data.progress.forEach((p) => { map[p.bab_id] = p })
-        setProgressMap(map)
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+  useEffect(() => { getMahasiswaDashboard().then(setData).catch(console.error) }, [])
 
-  return (
-    <DashboardLayout role="mahasiswa" title="Ujian" subtitle="Pilih modul untuk melihat daftar Bab yang bisa dikerjakan.">
-      {loading ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Memuat data...</div>
-      ) : modul.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Belum ada modul tersedia.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {modul.map((m, idx) => {
-            const babLulus = m.bab.filter((bab) => progressMap[bab.id]?.status === "lanjut").length
-            const totalBab = m.bab.length
-            const selesai = totalBab > 0 && babLulus === totalBab
-
-            return (
-              <motion.button
-                key={m.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.04 }}
-                onClick={() => navigate(`/mahasiswa/ujian/${m.id}`)}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-left hover:shadow-md hover:border-blue-100 transition-all flex items-center gap-4"
-              >
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                  <BookOpen size={22} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-bold text-gray-900 truncate">{m.nama_domain}</h2>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    <div className="w-32 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 rounded-full transition-all"
-                        style={{ width: `${totalBab ? (babLulus / totalBab) * 100 : 0}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400 shrink-0">{babLulus} / {totalBab} Bab lulus</p>
-                  </div>
-                </div>
-                {selesai ? (
-                  <PartyPopper size={18} className="text-amber-500 shrink-0" />
-                ) : (
-                  <ChevronRight size={18} className="text-gray-300 shrink-0" />
-                )}
-              </motion.button>
-            )
-          })}
-        </div>
-      )}
-    </DashboardLayout>
-  )
+  return <DashboardLayout role="mahasiswa" title="Pilih Modul" subtitle="Pilih modul untuk memulai pretest, mengerjakan setiap bab, lalu menyelesaikan posttest.">
+    {!data ? <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center text-gray-400">Memuat daftar modul...</div> : data.modul.length === 0 ? <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center text-gray-400">Belum ada modul yang tersedia.</div> : (
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {data.modul.map((modul) => {
+          const progressMap = Object.fromEntries(data.progress.map((item) => [item.bab_id, item]))
+          const selesai = modul.bab.filter((bab) => ["lanjut", "pengayaan"].includes(progressMap[bab.id]?.status)).length
+          const ujian = data.ujian_modul.find((item) => item.modul_id === modul.id) || {}
+          const pretestSelesai = ["menunggu_penilaian", "dinilai"].includes(ujian.pretest)
+          return <article key={modul.id} className="flex min-h-64 flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+            <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><BookOpen size={22} /></span>
+            <h2 className="text-lg font-semibold text-gray-900">{modul.nama_domain}</h2><p className="mt-1 text-sm text-gray-400">{modul.bab.length} bab</p>
+            <div className="mt-5 flex-1 space-y-2 text-xs"><p className={`flex items-center gap-2 ${pretestSelesai ? "text-green-700" : "text-amber-700"}`}><CheckCircle2 size={14} /> Pretest {pretestSelesai ? "selesai" : "belum dikerjakan"}</p><p className="text-gray-500">Progres bab: {selesai}/{modul.bab.length} selesai</p></div>
+            <button onClick={() => navigate(`/mahasiswa/modul/${modul.id}`)} className="mt-5 flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-blue-700">Buka Modul <ArrowRight size={16} /></button>
+          </article>
+        })}
+      </div>
+    )}
+  </DashboardLayout>
 }
 
 export default UjianModul

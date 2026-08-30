@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
-import { motion } from "framer-motion"
+import { motion as Motion } from "framer-motion"
 import { Check, Loader2, AlertTriangle } from "lucide-react"
 import DashboardLayout from "../../components/DashboardLayout"
 import Badge from "../../components/Badge"
-import { getModul, getPenilaian, beriNilaiBatch } from "../../api"
+import { getModul, getPenilaian, beriNilaiBatch, getPenilaianUjianModul, beriNilaiUjianModulBatch } from "../../api"
 
 const isDraftValid = (value) => value !== undefined && value !== "" && !Number.isNaN(parseFloat(value))
 
@@ -14,6 +14,7 @@ const Penilaian = () => {
 
   const [modul, setModul] = useState([])
   const [statusFilter, setStatusFilter] = useState("menunggu_penilaian")
+  const [mode, setMode] = useState("bab")
   const [jawaban, setJawaban] = useState([])
   const [loading, setLoading] = useState(true)
   const [drafts, setDrafts] = useState({})
@@ -46,25 +47,29 @@ const Penilaian = () => {
 
   const load = () => {
     setLoading(true)
-    getPenilaian(babFilter || undefined, statusFilter || undefined)
+    const request = mode === "modul" ? getPenilaianUjianModul(statusFilter || undefined) : getPenilaian(babFilter || undefined, statusFilter || undefined)
+    request
       .then(setJawaban)
       .catch(console.error)
       .finally(() => setLoading(false))
   }
 
-  useEffect(load, [babFilter, statusFilter])
+  useEffect(() => {
+    const request = mode === "modul" ? getPenilaianUjianModul(statusFilter || undefined) : getPenilaian(babFilter || undefined, statusFilter || undefined)
+    request.then(setJawaban).catch(console.error).finally(() => setLoading(false))
+  }, [babFilter, statusFilter, mode])
 
   const groups = useMemo(() => {
     const map = new Map()
     for (const j of jawaban) {
-      const key = `${j.bab_id}:${j.mahasiswa_id}`
+      const key = mode === "modul" ? j.attempt_id : `${j.bab_id}:${j.mahasiswa_id}`
       if (!map.has(key)) {
-        map.set(key, { key, bab_id: j.bab_id, mahasiswa_id: j.mahasiswa_id, mahasiswa_nama: j.mahasiswa_nama, items: [] })
+        map.set(key, { key, bab_id: j.bab_id, mahasiswa_id: j.mahasiswa_id, mahasiswa_nama: j.mahasiswa_nama, modul_nama: j.modul_nama, jenis: j.jenis, items: [] })
       }
       map.get(key).items.push(j)
     }
     return Array.from(map.values())
-  }, [jawaban])
+  }, [jawaban, mode])
 
   const handleSaveGroup = async (group) => {
     const ungraded = group.items.filter((i) => i.status !== "dinilai")
@@ -76,7 +81,7 @@ const Penilaian = () => {
     setSaving((prev) => ({ ...prev, [group.key]: true }))
     setWarning("")
     try {
-      const res = await beriNilaiBatch(payload)
+      const res = await (mode === "modul" ? beriNilaiUjianModulBatch(payload) : beriNilaiBatch(payload))
       if ((res.jawaban || []).length < payload.length) {
         setWarning(`${res.jawaban.length} dari ${payload.length} nilai tersimpan — beberapa jawaban mungkin sudah berubah, silakan cek ulang.`)
       }
@@ -87,9 +92,13 @@ const Penilaian = () => {
   }
 
   return (
-    <DashboardLayout role="dosen" title="Penilaian Jawaban" subtitle="Beri nilai jawaban mahasiswa per Bab.">
+    <DashboardLayout role="dosen" title="Penilaian Jawaban" subtitle="Nilai ujian per bab, pretest, dan posttest mahasiswa.">
+      <div className="mb-5 flex gap-2 rounded-2xl border border-gray-100 bg-white p-2 shadow-sm">
+        <button type="button" onClick={() => setMode("bab")} className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold ${mode === "bab" ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}>Ujian Per Bab</button>
+        <button type="button" onClick={() => setMode("modul")} className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold ${mode === "modul" ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}>Pretest & Posttest</button>
+      </div>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        {mode === "bab" && <div>
           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Bab</label>
           <select
             value={babFilter}
@@ -99,7 +108,7 @@ const Penilaian = () => {
             <option value="">Semua Bab</option>
             {babOptions.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
           </select>
-        </div>
+        </div>}
         <div>
           <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
           <select
@@ -131,7 +140,7 @@ const Penilaian = () => {
           const allFilled = ungraded.length > 0 && ungraded.every((i) => isDraftValid(drafts[i.id]))
 
           return (
-            <motion.div
+            <Motion.div
               key={group.key}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -141,7 +150,7 @@ const Penilaian = () => {
               <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
                 <div>
                   <p className="font-bold text-sm text-gray-900">{group.mahasiswa_nama}</p>
-                  <p className="text-xs text-gray-400">{babLabelMap[group.bab_id] || "Bab"}</p>
+                  <p className="text-xs text-gray-400">{mode === "modul" ? `${group.modul_nama} — ${group.jenis}` : babLabelMap[group.bab_id] || "Bab"}</p>
                 </div>
                 {ungraded.length > 0 && (
                   <button
@@ -193,7 +202,7 @@ const Penilaian = () => {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </Motion.div>
           )
         })}
       </div>
