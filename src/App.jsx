@@ -4,9 +4,11 @@ import ProtectedRoute from "./components/ProtectedRoute"
 
 import Login from "./pages/Login"
 
+import AdminDashboard from "./pages/admin/AdminDashboard"
+import RoleAccounts from "./pages/admin/RoleAccounts"
+
 import DosenDashboard from "./pages/dosen/DosenDashboard"
 import ManageMahasiswa from "./pages/dosen/ManageMahasiswa"
-import ManageDosen from "./pages/dosen/ManageDosen"
 import ManageMateri from "./pages/dosen/ManageMateri"
 import ManageSoal from "./pages/dosen/ManageSoal"
 import Penilaian from "./pages/dosen/Penilaian"
@@ -27,13 +29,18 @@ function App() {
 
         <Route path="/" element={<Login />} />
 
+        {/* Route Admin */}
+        <Route path="/admin/dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/mahasiswa" element={<ProtectedRoute role="admin"><RoleAccounts role="mahasiswa" /></ProtectedRoute>} />
+        <Route path="/admin/dosen" element={<ProtectedRoute role="admin"><RoleAccounts role="dosen" /></ProtectedRoute>} />
+        <Route path="/admin/admin" element={<ProtectedRoute role="admin"><RoleAccounts role="admin" /></ProtectedRoute>} />
+
         {/* Route Dosen */}
         <Route path="/dosen/dashboard" element={<ProtectedRoute role="dosen"><DosenDashboard /></ProtectedRoute>} />
         <Route path="/dosen/materi" element={<ProtectedRoute role="dosen"><ManageMateri /></ProtectedRoute>} />
         <Route path="/dosen/soal" element={<ProtectedRoute role="dosen"><ManageSoal /></ProtectedRoute>} />
         <Route path="/dosen/penilaian" element={<ProtectedRoute role="dosen"><Penilaian /></ProtectedRoute>} />
         <Route path="/dosen/mahasiswa" element={<ProtectedRoute role="dosen"><ManageMahasiswa /></ProtectedRoute>} />
-        <Route path="/dosen/dosen" element={<ProtectedRoute role="dosen"><ManageDosen /></ProtectedRoute>} />
         <Route path="/dosen/jobs" element={<ProtectedRoute role="dosen"><Jobs /></ProtectedRoute>} />
 
         {/* Route Mahasiswa */}

@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, BookOpen, FileQuestion, PenLine,
-  ClipboardList, LogOut, X, Users, UserCog, Briefcase, GraduationCap,
+  ClipboardList, LogOut, X, Users, UserCog, Briefcase, GraduationCap, ShieldCheck,
 } from "lucide-react"
 
 const dosenMenu = [
@@ -9,8 +9,7 @@ const dosenMenu = [
   { name: "Kelola Materi", path: "/dosen/materi", icon: <BookOpen size={20} /> },
   { name: "Kelola Soal", path: "/dosen/soal", icon: <FileQuestion size={20} /> },
   { name: "Penilaian", path: "/dosen/penilaian", icon: <ClipboardList size={20} /> },
-  { name: "Kelola Mahasiswa", path: "/dosen/mahasiswa", icon: <Users size={20} /> },
-  { name: "Kelola Dosen", path: "/dosen/dosen", icon: <UserCog size={20} /> },
+  { name: "Mahasiswa Terdaftar", path: "/dosen/mahasiswa", icon: <Users size={20} /> },
   { name: "Riwayat Proses", path: "/dosen/jobs", icon: <Briefcase size={20} /> },
 ]
 
@@ -19,11 +18,18 @@ const mahasiswaMenu = [
   { name: "Pilih Modul", path: "/mahasiswa/ujian", icon: <PenLine size={20} /> },
 ]
 
+const adminMenu = [
+  { name: "Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+  { name: "Kelola Mahasiswa", path: "/admin/mahasiswa", icon: <GraduationCap size={20} /> },
+  { name: "Kelola Dosen", path: "/admin/dosen", icon: <UserCog size={20} /> },
+  { name: "Kelola Admin", path: "/admin/admin", icon: <ShieldCheck size={20} /> },
+]
+
 const Sidebar = ({ isOpen, setIsOpen, role = "dosen" }) => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const menuItems = role === "mahasiswa" ? mahasiswaMenu : dosenMenu
+  const menuItems = role === "admin" ? adminMenu : role === "mahasiswa" ? mahasiswaMenu : dosenMenu
   const title = "MathDasar"
 
   const handleLogout = () => {
@@ -48,7 +54,7 @@ const Sidebar = ({ isOpen, setIsOpen, role = "dosen" }) => {
         <div className="px-5 py-6 flex justify-between items-center border-b border-gray-100">
           <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-700 rounded-xl shrink-0 flex items-center justify-center text-white shadow-sm">
-              {role === "mahasiswa" ? <GraduationCap size={18} /> : <LayoutDashboard size={18} />}
+              {role === "mahasiswa" ? <GraduationCap size={18} /> : role === "admin" ? <ShieldCheck size={18} /> : <LayoutDashboard size={18} />}
             </div>
             <span className="text-base leading-tight font-display">{title}</span>
           </h1>

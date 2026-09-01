@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import DashboardLayout from "../../components/DashboardLayout"
 import Badge from "../../components/Badge"
-import { listUsers } from "../../api"
+import { getAdminDashboard, listUsers } from "../../api"
 
 const roleMeta = {
   mahasiswa: { label: "Mahasiswa", badge: "purple" },
@@ -11,15 +11,24 @@ const roleMeta = {
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([])
+  const [summary, setSummary] = useState(null)
   const [error, setError] = useState("")
 
   useEffect(() => {
-    listUsers().then(setUsers).catch((err) => setError(err.message))
+    Promise.all([listUsers(), getAdminDashboard()])
+      .then(([userRows, dashboard]) => { setUsers(userRows); setSummary(dashboard) })
+      .catch((err) => setError(err.message))
   }, [])
 
   return (
     <DashboardLayout role="admin" title="Dashboard Admin" subtitle="Daftar seluruh akun yang terdaftar di sistem matrikulasi.">
       {error && <div className="mb-5 rounded-xl bg-red-50 p-4 text-red-600">{error}</div>}
+
+      {summary && <section className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[['Admin', summary.jumlah_admin], ['Dosen', summary.jumlah_dosen], ['Mahasiswa', summary.jumlah_mahasiswa], ['Akun Aktif', summary.jumlah_aktif]].map(([label, value]) =>
+          <article key={label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><p className="text-sm text-gray-500">{label}</p><p className="mt-2 text-3xl font-bold text-gray-900">{value}</p></article>
+        )}
+      </section>}
 
       <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-100 p-5">

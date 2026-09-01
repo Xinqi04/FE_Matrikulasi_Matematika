@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { Users, BookOpen, FileQuestion, ClipboardCheck, ArrowRight } from "lucide-react"
 import DashboardLayout from "../../components/DashboardLayout"
 import StatCard from "../../components/StatCard"
-import { getDosenDashboard, getPenilaian } from "../../api"
+import { getDosenDashboard, getPenilaian, getPenilaianUjianModul } from "../../api"
 
 const DosenDashboard = () => {
   const navigate = useNavigate()
@@ -13,10 +13,16 @@ const DosenDashboard = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([getDosenDashboard(), getPenilaian(null, "menunggu_penilaian")])
-      .then(([dashboard, penilaian]) => {
+    Promise.all([getDosenDashboard(), getPenilaian(null, "menunggu_penilaian"), getPenilaianUjianModul("menunggu_penilaian")])
+      .then(([dashboard, penilaianBab, penilaianModul]) => {
         setStats(dashboard)
-        setPending(penilaian)
+        const unik = new Map()
+        for (const item of [...penilaianBab, ...penilaianModul]) {
+          const current = unik.get(item.mahasiswa_id)
+          if (!current) unik.set(item.mahasiswa_id, { ...item, jumlah: 1 })
+          else current.jumlah += 1
+        }
+        setPending([...unik.values()].sort((a, b) => String(a.dijawab_pada || "").localeCompare(String(b.dijawab_pada || ""))))
       })
       .catch(console.error)
       .finally(() => setLoading(false))
@@ -45,7 +51,7 @@ const DosenDashboard = () => {
         />
         <StatCard
           title="Perlu Dinilai"
-          value={loading ? "-" : stats?.jumlah_jawaban_menunggu_penilaian ?? 0}
+          value={loading ? "-" : pending.length}
           icon={<ClipboardCheck className="text-orange-600" size={20} />}
           color="bg-orange-50"
         />
@@ -79,10 +85,9 @@ const DosenDashboard = () => {
             >
               <div className="min-w-0">
                 <p className="font-bold text-sm text-gray-900 truncate">{item.mahasiswa_nama}</p>
-                <p className="text-[12px] text-gray-500 truncate">{item.teks_soal}</p>
               </div>
               <button
-                onClick={() => navigate(`/dosen/penilaian?bab_id=${item.bab_id}`)}
+                onClick={() => navigate("/dosen/penilaian")}
                 className="shrink-0 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
               >
                 Nilai

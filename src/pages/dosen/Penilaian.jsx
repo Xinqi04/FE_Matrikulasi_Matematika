@@ -1,213 +1,122 @@
 import { useEffect, useMemo, useState } from "react"
-import { useSearchParams } from "react-router-dom"
 import { motion as Motion } from "framer-motion"
-import { Check, Loader2, AlertTriangle } from "lucide-react"
+import { AlertTriangle, Check, Loader2 } from "lucide-react"
 import DashboardLayout from "../../components/DashboardLayout"
 import Badge from "../../components/Badge"
-import { getModul, getPenilaian, beriNilaiBatch, getPenilaianUjianModul, beriNilaiUjianModulBatch } from "../../api"
+import { beriNilaiBatch, beriNilaiUjianModulBatch, getModul, getPenilaian, getPenilaianUjianModul } from "../../api"
 
-const isDraftValid = (value) => value !== undefined && value !== "" && !Number.isNaN(parseFloat(value))
+const isDraftValid = (value) => value !== undefined && value !== "" && !Number.isNaN(Number(value))
+const oldestFirst = (a, b) => String(a.dijawab_pada || "").localeCompare(String(b.dijawab_pada || ""))
 
 const Penilaian = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const babFilter = searchParams.get("bab_id") || ""
-
   const [modul, setModul] = useState([])
-  const [statusFilter, setStatusFilter] = useState("menunggu_penilaian")
-  const [mode, setMode] = useState("bab")
-  const [jawaban, setJawaban] = useState([])
+  const [jawabanBab, setJawabanBab] = useState([])
+  const [jawabanModul, setJawabanModul] = useState([])
+  const [modulId, setModulId] = useState("")
+  const [jenis, setJenis] = useState("")
+  const [babId, setBabId] = useState("")
+  const [status, setStatus] = useState("menunggu_penilaian")
   const [loading, setLoading] = useState(true)
   const [drafts, setDrafts] = useState({})
   const [saving, setSaving] = useState({})
+  const [expanded, setExpanded] = useState({})
   const [warning, setWarning] = useState("")
-
-  useEffect(() => {
-    getModul().then(setModul).catch(console.error)
-  }, [])
-
-  const babOptions = useMemo(() => {
-    const opts = []
-    for (const m of modul) {
-      for (const bab of m.bab) {
-        opts.push({ id: bab.id, label: `${m.nama_domain} — Bab ${bab.nomor}. ${bab.nama}` })
-      }
-    }
-    return opts
-  }, [modul])
-
-  const babLabelMap = useMemo(() => {
-    const map = {}
-    for (const m of modul) {
-      for (const bab of m.bab) {
-        map[bab.id] = `Bab ${bab.nomor}. ${bab.nama}`
-      }
-    }
-    return map
-  }, [modul])
 
   const load = () => {
     setLoading(true)
-    const request = mode === "modul" ? getPenilaianUjianModul(statusFilter || undefined) : getPenilaian(babFilter || undefined, statusFilter || undefined)
-    request
-      .then(setJawaban)
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    Promise.all([
+      getPenilaian(),
+      getPenilaianUjianModul(),
+    ]).then(([bab, ujianModul]) => {
+      setJawabanBab(bab)
+      setJawabanModul(ujianModul)
+    }).catch((err) => setWarning(err.message)).finally(() => setLoading(false))
   }
 
-  useEffect(() => {
-    const request = mode === "modul" ? getPenilaianUjianModul(statusFilter || undefined) : getPenilaian(babFilter || undefined, statusFilter || undefined)
-    request.then(setJawaban).catch(console.error).finally(() => setLoading(false))
-  }, [babFilter, statusFilter, mode])
+  useEffect(() => { getModul().then(setModul).catch((err) => setWarning(err.message)) }, [])
+  useEffect(load, [])
+
+  const babMeta = useMemo(() => {
+    const map = {}
+    for (const item of modul) for (const bab of item.bab) map[bab.id] = { ...bab, modul_id: item.id, modul_nama: item.nama_domain }
+    return map
+  }, [modul])
+
+  const semuaJawaban = useMemo(() => [
+    ...jawabanBab.map((item) => ({ ...item, sumber: "bab", modul_id: babMeta[item.bab_id]?.modul_id, modul_nama: babMeta[item.bab_id]?.modul_nama })),
+    ...jawabanModul.map((item) => ({ ...item, sumber: item.jenis })),
+  ].sort(oldestFirst), [jawabanBab, jawabanModul, babMeta])
+
+  const babOptions = useMemo(() => modul.find((item) => item.id === modulId)?.bab || [], [modul, modulId])
+
+  const filtered = useMemo(() => semuaJawaban.filter((item) =>
+    item.modul_id === modulId && item.sumber === jenis &&
+    (!status || item.status === status) && (jenis !== "bab" || !babId || item.bab_id === babId)
+  ), [semuaJawaban, modulId, jenis, babId, status])
 
   const groups = useMemo(() => {
     const map = new Map()
-    for (const j of jawaban) {
-      const key = mode === "modul" ? j.attempt_id : `${j.bab_id}:${j.mahasiswa_id}`
-      if (!map.has(key)) {
-        map.set(key, { key, bab_id: j.bab_id, mahasiswa_id: j.mahasiswa_id, mahasiswa_nama: j.mahasiswa_nama, modul_nama: j.modul_nama, jenis: j.jenis, items: [] })
-      }
-      map.get(key).items.push(j)
+    for (const item of filtered) {
+      const key = item.sumber === "bab" ? `${item.bab_id}:${item.mahasiswa_id}` : item.attempt_id
+      if (!map.has(key)) map.set(key, { key, source: item.sumber, items: [], firstAt: item.dijawab_pada })
+      map.get(key).items.push(item)
     }
-    return Array.from(map.values())
-  }, [jawaban, mode])
+    return [...map.values()].sort((a, b) => String(a.firstAt || "").localeCompare(String(b.firstAt || "")))
+  }, [filtered])
 
-  const handleSaveGroup = async (group) => {
-    const ungraded = group.items.filter((i) => i.status !== "dinilai")
-    const payload = ungraded
-      .filter((i) => isDraftValid(drafts[i.id]))
-      .map((i) => ({ jawaban_id: i.id, nilai: parseFloat(drafts[i.id]) }))
-    if (payload.length === 0) return
+  const selectModul = (value) => { setModulId(value); setJenis(""); setBabId("") }
+  const selectJenis = (value) => { setJenis(value); setBabId("") }
 
-    setSaving((prev) => ({ ...prev, [group.key]: true }))
-    setWarning("")
+  const saveGroup = async (group) => {
+    const payload = group.items.filter((item) => item.status !== "dinilai" && isDraftValid(drafts[item.id]))
+      .map((item) => ({ jawaban_id: item.id, nilai: Number(drafts[item.id]) }))
+    if (!payload.length) return
+    setSaving((current) => ({ ...current, [group.key]: true })); setWarning("")
     try {
-      const res = await (mode === "modul" ? beriNilaiUjianModulBatch(payload) : beriNilaiBatch(payload))
-      if ((res.jawaban || []).length < payload.length) {
-        setWarning(`${res.jawaban.length} dari ${payload.length} nilai tersimpan — beberapa jawaban mungkin sudah berubah, silakan cek ulang.`)
-      }
+      await (group.source === "bab" ? beriNilaiBatch(payload) : beriNilaiUjianModulBatch(payload))
       load()
-    } finally {
-      setSaving((prev) => ({ ...prev, [group.key]: false }))
-    }
+    } catch (err) { setWarning(err.message) }
+    finally { setSaving((current) => ({ ...current, [group.key]: false })) }
   }
 
-  return (
-    <DashboardLayout role="dosen" title="Penilaian Jawaban" subtitle="Nilai ujian per bab, pretest, dan posttest mahasiswa.">
-      <div className="mb-5 flex gap-2 rounded-2xl border border-gray-100 bg-white p-2 shadow-sm">
-        <button type="button" onClick={() => setMode("bab")} className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold ${mode === "bab" ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}>Ujian Per Bab</button>
-        <button type="button" onClick={() => setMode("modul")} className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold ${mode === "modul" ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}>Pretest & Posttest</button>
-      </div>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mode === "bab" && <div>
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Bab</label>
-          <select
-            value={babFilter}
-            onChange={(e) => setSearchParams(e.target.value ? { bab_id: e.target.value } : {})}
-            className="w-full mt-1 px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none text-sm font-medium text-slate-700"
-          >
-            <option value="">Semua Bab</option>
-            {babOptions.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
-          </select>
-        </div>}
-        <div>
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full mt-1 px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none text-sm font-medium text-slate-700"
-          >
-            <option value="menunggu_penilaian">Menunggu Penilaian</option>
-            <option value="dinilai">Sudah Dinilai</option>
-            <option value="">Semua Status</option>
-          </select>
-        </div>
-      </div>
+  return <DashboardLayout role="dosen" title="Penilaian Jawaban" subtitle="Pilih modul dan jenis ujian. Mahasiswa yang mengumpulkan ditampilkan dari yang paling lama.">
+    <section className="mb-6 grid gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:grid-cols-2 xl:grid-cols-4">
+      <Filter label="1. Modul" value={modulId} onChange={selectModul}>
+        <option value="">Pilih modul</option>{modul.map((item) => <option key={item.id} value={item.id}>{item.nama_domain}</option>)}
+      </Filter>
+      <Filter label="2. Jenis Ujian" value={jenis} onChange={selectJenis} disabled={!modulId}>
+        <option value="">Pilih jenis</option><option value="pretest">Pretest</option><option value="posttest">Posttest</option><option value="bab">Ujian Bab Biasa</option>
+      </Filter>
+      <Filter label="3. Bab" value={babId} onChange={setBabId} disabled={jenis !== "bab"}>
+        <option value="">Semua bab</option>{babOptions.map((item) => <option key={item.id} value={item.id}>Bab {item.nomor}. {item.nama}</option>)}
+      </Filter>
+      <Filter label="Status" value={status} onChange={setStatus}>
+        <option value="menunggu_penilaian">Menunggu</option><option value="dinilai">Sudah dinilai</option><option value="">Semua status</option>
+      </Filter>
+    </section>
 
-      {warning && (
-        <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-700 text-sm font-medium rounded-2xl p-4 mb-6">
-          <AlertTriangle size={16} className="shrink-0" />
-          {warning}
-        </div>
-      )}
+    {warning && <div className="mb-6 flex items-center gap-2 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm text-orange-700"><AlertTriangle size={16}/>{warning}</div>}
 
-      <div className="space-y-4">
-        {loading ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Memuat data...</div>
-        ) : groups.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center text-gray-400">Tidak ada jawaban ditemukan.</div>
-        ) : groups.map((group, gIdx) => {
-          const ungraded = group.items.filter((i) => i.status !== "dinilai")
-          const allFilled = ungraded.length > 0 && ungraded.every((i) => isDraftValid(drafts[i.id]))
-
-          return (
-            <Motion.div
-              key={group.key}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: gIdx * 0.03 }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5"
-            >
-              <div className="flex items-center justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
-                <div>
-                  <p className="font-bold text-sm text-gray-900">{group.mahasiswa_nama}</p>
-                  <p className="text-xs text-gray-400">{mode === "modul" ? `${group.modul_nama} — ${group.jenis}` : babLabelMap[group.bab_id] || "Bab"}</p>
-                </div>
-                {ungraded.length > 0 && (
-                  <button
-                    onClick={() => handleSaveGroup(group)}
-                    disabled={saving[group.key] || !allFilled}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-all disabled:bg-slate-200 disabled:text-slate-400 shrink-0"
-                  >
-                    {saving[group.key] ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                    Simpan Semua Nilai
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                {group.items.map((j) => (
-                  <div key={j.id} className="pb-4 border-b border-gray-50 last:border-0 last:pb-0">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant={j.tipe === "esai" ? "purple" : "blue"}>{j.tipe.replace("_", " ")}</Badge>
-                        <Badge variant={j.status === "dinilai" ? "green" : "orange"}>{j.status.replace("_", " ")}</Badge>
-                      </div>
-                      {j.nilai !== null && j.nilai !== undefined && (
-                        <div className="text-right shrink-0">
-                          <p className="text-xl font-black text-gray-900">{j.nilai}</p>
-                          <p className="text-[10px] text-gray-400 uppercase font-bold">Nilai</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="text-sm text-gray-700 font-medium mb-2">{j.teks_soal}</p>
-                    {j.jawaban_referensi && (
-                      <p className="text-xs text-gray-400 mb-2">Referensi: {j.jawaban_referensi}</p>
-                    )}
-                    <div className="bg-gray-50/60 rounded-xl p-3 text-sm text-gray-700 mb-2">
-                      {j.teks_jawaban}
-                    </div>
-
-                    {j.status !== "dinilai" && (
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        placeholder="0-100"
-                        value={drafts[j.id] ?? ""}
-                        onChange={(e) => setDrafts((prev) => ({ ...prev, [j.id]: e.target.value }))}
-                        className="w-28 px-3 py-2 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none focus:bg-white focus:border-blue-500 text-sm font-bold text-slate-700"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Motion.div>
-          )
-        })}
-      </div>
-    </DashboardLayout>
-  )
+    {modulId && jenis && <div className="mb-4"><h2 className="font-semibold text-gray-900">Mahasiswa yang Mengumpulkan</h2><p className="mt-1 text-sm text-gray-400">Urutan pengumpulan paling lama ditampilkan lebih dahulu.</p></div>}
+    <div className="space-y-4">
+      {loading ? <Empty text="Memuat jawaban..." /> : !modulId ? <Empty text="Pilih modul yang akan dinilai." /> : !jenis ? <Empty text="Pilih pretest, posttest, atau ujian bab biasa." /> : !groups.length ? <Empty text="Belum ada mahasiswa yang mengumpulkan sesuai filter." /> : groups.map((group, index) => {
+        const first = group.items[0]
+        const pending = group.items.filter((item) => item.status !== "dinilai")
+        const allFilled = pending.length > 0 && pending.every((item) => isDraftValid(drafts[item.id]))
+        const title = group.source === "bab" ? `Bab ${babMeta[first.bab_id]?.nomor}. ${babMeta[first.bab_id]?.nama}` : first.jenis
+        const isOpen = Boolean(expanded[group.key])
+        const graded = group.items.filter((item) => item.status === "dinilai" && item.nilai !== null && item.nilai !== undefined)
+        const nilaiAkumulasi = graded.length === group.items.length ? Math.round((graded.reduce((total, item) => total + Number(item.nilai), 0) / graded.length) * 100) / 100 : null
+        return <Motion.article key={group.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .03 }} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <header className={`flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between ${isOpen ? "mb-4 border-b border-gray-100 pb-4" : ""}`}><div><div className="flex flex-wrap items-center gap-2"><p className="font-bold text-gray-900">{first.mahasiswa_nama}</p><span className="text-xs text-gray-400">{first.mahasiswa_nim}</span>{first.percobaan > 1 && <Badge variant="red">Remedial · Percobaan {first.percobaan}</Badge>}{pending.length ? <Badge variant="orange">Menunggu dinilai</Badge> : <Badge variant="green">Nilai {nilaiAkumulasi ?? "-"}</Badge>}</div><p className="mt-1 text-xs capitalize text-gray-400">{title} · {group.items.length} soal · {first.dijawab_pada ? new Date(first.dijawab_pada).toLocaleString("id-ID") : "Waktu tidak tersedia"}</p></div><div className="flex gap-2"><button onClick={() => setExpanded((current) => ({ ...current, [group.key]: !isOpen }))} className="rounded-xl border border-blue-200 px-4 py-2 text-xs font-bold text-blue-700 hover:bg-blue-50">{isOpen ? "Tutup Detail" : "Lihat Detail"}</button>{isOpen && pending.length > 0 && <button onClick={() => saveGroup(group)} disabled={!allFilled || saving[group.key]} className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white disabled:bg-gray-200 disabled:text-gray-400">{saving[group.key] ? <Loader2 size={14} className="animate-spin"/> : <Check size={14}/>}Simpan Nilai</button>}</div></header>
+          {isOpen && <div className="space-y-4">{group.items.map((item) => <div key={item.id} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0"><div className="mb-2 flex gap-2"><Badge variant={item.tipe === "esai" ? "purple" : "blue"}>{item.tipe.replace("_", " ")}</Badge><Badge variant={item.status === "dinilai" ? "green" : "orange"}>{item.status.replace("_", " ")}</Badge></div><p className="mb-2 text-sm font-medium text-gray-800">{item.teks_soal}</p>{item.jawaban_referensi && <p className="mb-2 text-xs text-gray-400">Referensi: {item.jawaban_referensi}</p>}<div className="mb-3 rounded-xl bg-gray-50 p-3 text-sm text-gray-700">{item.teks_jawaban}</div>{item.status === "dinilai" ? <p className="font-bold text-blue-700">Nilai: {item.nilai}</p> : <input type="number" min="0" max="100" value={drafts[item.id] ?? ""} onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: event.target.value }))} placeholder="Nilai 0–100" className="w-32 rounded-xl border-2 border-gray-100 bg-gray-50 px-3 py-2 text-sm font-bold outline-none focus:border-blue-500"/>}</div>)}</div>}
+        </Motion.article>
+      })}
+    </div>
+  </DashboardLayout>
 }
+
+const Filter = ({ label, value, onChange, disabled, children }) => <label><span className="ml-1 text-xs font-black uppercase tracking-wider text-gray-400">{label}</span><select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)} className="mt-1 w-full rounded-xl border-2 border-gray-100 bg-gray-50 px-3 py-3 text-sm font-medium outline-none disabled:opacity-50">{children}</select></label>
+const Empty = ({ text }) => <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center text-gray-400">{text}</div>
 
 export default Penilaian
