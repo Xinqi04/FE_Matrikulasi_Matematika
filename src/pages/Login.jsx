@@ -1,15 +1,15 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion as Motion, AnimatePresence } from "framer-motion"
-import { AlertCircle, ArrowRight, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react"
+import { AlertCircle, ArrowRight, Eye, EyeOff, IdCard, Loader2, LockKeyhole, UserRound } from "lucide-react"
 import { login } from "../api"
 
 const Login = () => {
   const navigate = useNavigate()
-  const rememberedEmail = localStorage.getItem("rememberedEmail") || ""
-  const [email, setEmail] = useState(rememberedEmail)
+  const rememberedNim = localStorage.getItem("rememberedNim") || ""
+  const [nim, setNim] = useState(rememberedNim)
   const [password, setPassword] = useState("")
-  const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail))
+  const [rememberMe, setRememberMe] = useState(Boolean(rememberedNim))
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -20,15 +20,21 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const data = await login(email, password)
-      if (rememberMe) localStorage.setItem("rememberedEmail", email)
-      else localStorage.removeItem("rememberedEmail")
+      const data = await login(nim, password)
+      if (rememberMe) localStorage.setItem("rememberedNim", nim)
+      else localStorage.removeItem("rememberedNim")
+      localStorage.removeItem("rememberedEmail")
 
       sessionStorage.setItem("token", data.access_token)
       sessionStorage.setItem("user", JSON.stringify({ nama: data.nama, role: data.role }))
-      navigate(data.role === "dosen" ? "/dosen/dashboard" : "/mahasiswa/dashboard")
+      const dashboardByRole = {
+        admin: "/admin/dashboard",
+        dosen: "/dosen/dashboard",
+        mahasiswa: "/mahasiswa/dashboard",
+      }
+      navigate(dashboardByRole[data.role] || "/")
     } catch (err) {
-      setError(err.message || "Login gagal. Periksa kembali email dan password Anda.")
+      setError(err.message || "Login gagal. Periksa kembali NIM/ID dan password Anda.")
     } finally {
       setLoading(false)
     }
@@ -77,16 +83,16 @@ const Login = () => {
 
             <form onSubmit={handleLogin} className="space-y-5 sm:space-y-6">
               <div className="space-y-2">
-                <label htmlFor="email" className="ml-1 block text-xs font-bold uppercase tracking-wide text-gray-800">Email</label>
+                <label htmlFor="nim" className="ml-1 block text-xs font-bold uppercase tracking-wide text-gray-800">NIM / ID</label>
                 <div className="relative">
-                  <Mail size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                  <IdCard size={20} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                   <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="nama@kampus.ac.id"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    id="nim"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="Masukkan NIM atau ID akun"
+                    value={nim}
+                    onChange={(event) => setNim(event.target.value)}
                     className="h-14 w-full rounded-xl border border-gray-100 bg-white pl-13 pr-4 text-sm font-medium text-gray-700 shadow-[0_5px_18px_rgba(17,24,39,0.035)] outline-none transition placeholder:font-normal placeholder:text-gray-400 hover:border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 sm:h-[58px] sm:text-base"
                     required
                   />

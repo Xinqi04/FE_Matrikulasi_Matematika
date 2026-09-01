@@ -16,7 +16,7 @@ const DashboardLayout = ({ role = "dosen", title, subtitle, children }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F6F7F8] text-gray-900">
+    <div className="flex min-h-screen bg-[#F6F7F8] font-sans text-gray-900">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} role={role} />
 
       <main className="flex-1 lg:ml-64 transition-all duration-300">

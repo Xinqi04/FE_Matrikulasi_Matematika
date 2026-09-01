@@ -38,13 +38,24 @@ async function request(method, path, body = null, { isForm = false } = {}) {
 }
 
 // ── Auth ────────────────────────────────────────────────────────
-export const login = (email, password) =>
-  request("POST", "/auth/login", { email, password })
+export const login = (nim, password) =>
+  request("POST", "/auth/login", { nim, password })
 
 export const getMe = () => request("GET", "/auth/me")
 
 export const changePassword = (password_lama, password_baru) =>
   request("PUT", "/auth/me/password", { password_lama, password_baru })
+
+// ── Admin: akun dan enrollment ────────────────────────────────
+export const getAdminDashboard = () => request("GET", "/admin/dashboard")
+export const listUsers = (role) => request("GET", `/admin/users${role ? `?role=${role}` : ""}`)
+export const createUser = (data) => request("POST", "/admin/users", data)
+export const updateUser = (userId, data) => request("PUT", `/admin/users/${userId}`, data)
+export const setUserActive = (userId, aktif) =>
+  request("PUT", `/admin/users/${userId}/active`, { aktif })
+export const getUserModules = (userId) => request("GET", `/admin/users/${userId}/modules`)
+export const setUserModules = (userId, moduleIds) =>
+  request("PUT", `/admin/users/${userId}/modules`, { modul_ids: moduleIds })
 
 // ── Knowledge Graph (public) ───────────────────────────────────
 export const getModul = () => request("GET", "/kg/modul")
@@ -55,14 +66,6 @@ export const getVideo = () => request("GET", "/kg/video")
 export const getDosenDashboard = () => request("GET", "/dosen/dashboard")
 
 export const listMahasiswa = () => request("GET", "/dosen/mahasiswa")
-export const buatMahasiswa = (data) => request("POST", "/dosen/mahasiswa", data)
-export const setAktifMahasiswa = (userId, aktif) =>
-  request("PUT", `/dosen/mahasiswa/${userId}`, { aktif })
-export const getModulMahasiswa = (userId) => request("GET", `/dosen/mahasiswa/${userId}/modul`)
-export const setModulMahasiswa = (userId, modulIds) =>
-  request("PUT", `/dosen/mahasiswa/${userId}/modul`, { modul_ids: modulIds })
-
-export const buatDosen = (data) => request("POST", "/dosen/dosen", data)
 
 // ── Dosen: soal ─────────────────────────────────────────────────
 export const suggestKonsep = (bab_id, teks_soal) =>
