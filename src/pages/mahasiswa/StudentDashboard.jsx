@@ -54,7 +54,7 @@ const StudentDashboard = () => {
     ) : !modulAktif ? (
       <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center text-gray-400">Belum ada modul tersedia.</div>
     ) : <div className="space-y-5">
-      <Motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-800 to-blue-700 p-6 text-white shadow-lg shadow-blue-900/10">
+      <Motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-800 to-blue-700 p-4 text-white shadow-lg shadow-blue-900/10 sm:p-6">
         <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-white/5" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -63,11 +63,11 @@ const StudentDashboard = () => {
             <p className="mt-4 text-xs text-blue-100">{progressModul} dari {totalModul} bab lulus</p>
             <div className="mt-2 h-2 w-56 max-w-full overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white transition-all" style={{ width: `${persen}%` }} /></div>
           </div>
-          <button onClick={lanjutkan} className="flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-blue-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50"><Rocket size={17} /> {pretestDone ? "Lanjutkan Belajar" : "Mulai Pretest"}</button>
+          <button onClick={lanjutkan} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-blue-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-blue-50 sm:w-auto"><Rocket size={17} /> {pretestDone ? "Lanjutkan Belajar" : "Mulai Pretest"}</button>
         </div>
       </Motion.section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 lg:grid-cols-4">
         {[
           { icon: <BookOpen size={19} />, color: "text-green-600 bg-green-50", label: "Modul Aktif", value: data.modul.length, note: modulAktif.nama_domain },
           { icon: <Circle size={19} />, color: "text-violet-600 bg-violet-50", label: "Bab Lulus", value: `${babLulus.length} / ${semuaBab.length}`, note: `${semuaBab.length - babLulus.length} bab tersisa` },

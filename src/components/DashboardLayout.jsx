@@ -16,12 +16,12 @@ const DashboardLayout = ({ role = "dosen", title, subtitle, children }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F6F7F8] font-sans text-gray-900">
+    <div className="flex min-h-dvh bg-[#F6F7F8] font-sans text-gray-900">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} role={role} />
 
-      <main className="flex-1 lg:ml-64 transition-all duration-300">
-        <header className="lg:hidden bg-white/90 backdrop-blur-xl border-b border-gray-200 px-4 py-3 sticky top-0 z-30 flex justify-between items-center">
-          <h1 className="font-display font-semibold text-blue-700">MathDasar</h1>
+      <main className="min-w-0 flex-1 transition-all duration-300 lg:ml-64">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 bg-white/90 px-3 py-2.5 backdrop-blur-xl sm:px-5 lg:hidden">
+          <div className="min-w-0"><h1 className="truncate font-display font-semibold text-blue-700">MathDasar</h1><p className="truncate text-[11px] capitalize text-gray-400">{user.role || role}</p></div>
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="p-2 bg-gray-100 rounded-lg"
@@ -59,10 +59,10 @@ const DashboardLayout = ({ role = "dosen", title, subtitle, children }) => {
           </div>
         </div>
 
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="mx-auto w-full max-w-7xl px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-5 md:p-8">
           {(title || subtitle) && (
             <div className="mb-8 max-w-3xl">
-              {title && <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">{title}</h1>}
+              {title && <h1 className="text-xl font-semibold leading-tight text-gray-900 sm:text-2xl md:text-3xl">{title}</h1>}
               {subtitle && <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">{subtitle}</p>}
             </div>
           )}

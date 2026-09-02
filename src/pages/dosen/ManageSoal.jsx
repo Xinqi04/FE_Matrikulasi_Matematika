@@ -234,7 +234,7 @@ const ManageSoal = () => {
       ) : (
         <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-6">
+            <div className="flex gap-4 overflow-x-auto pb-1 sm:gap-6">
               <button type="button" onClick={() => setActiveTab("semua")} className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-bold transition-colors ${activeTab === "semua" ? "border-blue-600 text-blue-700" : "border-transparent text-gray-400 hover:text-gray-700"}`}>
                 <ListChecks size={16} /> Semua Soal <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">{totalSoal}</span>
               </button>
@@ -331,7 +331,7 @@ const ManageSoal = () => {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Tipe</label>
               <select
@@ -442,7 +442,7 @@ const ManageSoal = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Tipe</label>
                   <select

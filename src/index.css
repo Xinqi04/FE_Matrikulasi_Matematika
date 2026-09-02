@@ -58,6 +58,8 @@
 
 html {
   background: var(--canvas);
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -67,6 +69,27 @@ body {
   background:
     radial-gradient(circle at 92% 4%, rgb(94 234 212 / 8%), transparent 28rem),
     var(--canvas);
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+p,
+td,
+th {
+  overflow-wrap: anywhere;
 }
 
 h1,
@@ -85,6 +108,41 @@ input,
 select,
 textarea {
   -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  button,
+  a,
+  input,
+  select {
+    min-height: 44px;
+  }
+
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .overflow-x-auto > table {
+    min-width: 640px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 button:not(:disabled),

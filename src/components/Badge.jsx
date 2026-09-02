@@ -8,7 +8,7 @@ const VARIANTS = {
 }
 
 const Badge = ({ children, variant = "gray" }) => (
-  <span className={`inline-flex items-center text-[11px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg ${VARIANTS[variant] || VARIANTS.gray}`}>
+  <span className={`inline-flex max-w-full items-center rounded-lg px-2 py-1 text-[11px] font-bold uppercase tracking-wide ${VARIANTS[variant] || VARIANTS.gray}`}>
     {children}
   </span>
 )

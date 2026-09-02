@@ -17,7 +17,7 @@ const ManageMahasiswa = () => {
       {error && <div className="mb-5 rounded-xl bg-red-50 p-4 text-red-600">{error}</div>}
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[620px] text-sm">
             <thead className="bg-gray-50/50"><tr><th className="p-4 text-left">Nama</th><th className="p-4 text-left">NIM / ID</th><th className="p-4 text-center">Jumlah Modul</th><th className="p-4 text-center">Status</th></tr></thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? <tr><td colSpan={4} className="p-8 text-center text-gray-400">Memuat data...</td></tr>

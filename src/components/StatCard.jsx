@@ -1,5 +1,5 @@
 const StatCard = ({ title, value, icon, color = "bg-blue-50" }) => (
-  <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+  <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:gap-4 md:p-6">
     <div className={`p-3 md:p-4 rounded-xl shrink-0 ${color}`}>
       {icon}
     </div>

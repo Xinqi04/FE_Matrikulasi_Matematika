@@ -24,7 +24,7 @@ export default function AdminDashboard() {
     <DashboardLayout role="admin" title="Dashboard Admin" subtitle="Daftar seluruh akun yang terdaftar di sistem matrikulasi.">
       {error && <div className="mb-5 rounded-xl bg-red-50 p-4 text-red-600">{error}</div>}
 
-      {summary && <section className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {summary && <section className="mb-6 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         {[['Admin', summary.jumlah_admin], ['Dosen', summary.jumlah_dosen], ['Mahasiswa', summary.jumlah_mahasiswa], ['Akun Aktif', summary.jumlah_aktif]].map(([label, value]) =>
           <article key={label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><p className="text-sm text-gray-500">{label}</p><p className="mt-2 text-3xl font-bold text-gray-900">{value}</p></article>
         )}
@@ -40,7 +40,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[680px] text-sm">
             <thead className="bg-gray-50/60">
               <tr>
                 <th className="p-4 text-left">Nama</th>
