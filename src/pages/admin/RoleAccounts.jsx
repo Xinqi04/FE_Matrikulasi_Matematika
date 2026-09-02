@@ -64,9 +64,9 @@ export default function RoleAccounts({ role }) {
   }
 
   return <DashboardLayout role="admin" title={`Kelola ${label}`} subtitle={`Tambah akun dan atur status ${label.toLowerCase()}.`}>
-    <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
       <div><p className="text-sm text-gray-500">Total {label}</p><p className="mt-1 text-3xl font-bold text-gray-900">{users.length}</p></div>
-      <button onClick={() => setFormOpen(true)} className="flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-100"><Plus size={17}/> Tambah {label}</button>
+      <button onClick={() => setFormOpen(true)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-100 sm:w-auto"><Plus size={17}/> Tambah {label}</button>
     </div>
     {message && <div className="mb-4 rounded-xl bg-green-50 p-4 text-green-700">{message}</div>}
     {error && <div className="mb-4 rounded-xl bg-red-50 p-4 text-red-600">{error}</div>}

@@ -44,7 +44,7 @@ const Login = () => {
     <main className="relative min-h-screen overflow-x-hidden bg-[#F8F5F0] bg-[url('/img/bg-login.png')] bg-cover bg-[position:38%_center] lg:bg-center">
       <div className="absolute inset-0 bg-white/30 sm:bg-white/15 lg:hidden" aria-hidden="true" />
 
-      <div className="relative z-10 grid min-h-screen grid-rows-[1fr_auto] px-4 py-6 sm:px-8 sm:py-8 lg:grid-cols-[43%_57%] lg:grid-rows-[1fr_auto] lg:px-0 lg:py-0">
+      <div className="relative z-10 grid min-h-dvh grid-rows-[1fr_auto] px-3 py-4 sm:px-8 sm:py-8 lg:grid-cols-[43%_57%] lg:grid-rows-[1fr_auto] lg:px-0 lg:py-0">
         <div className="hidden lg:block" aria-hidden="true" />
 
         <section className="flex items-center justify-center lg:px-12 xl:px-20 2xl:px-28">
@@ -52,9 +52,9 @@ const Login = () => {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, ease: "easeOut" }}
-            className="w-full max-w-[540px] rounded-[28px] border border-white/90 bg-white/94 px-5 py-8 shadow-[0_18px_55px_rgba(38,54,56,0.13)] backdrop-blur-md sm:px-9 sm:py-10 lg:rounded-[42px] lg:px-10 lg:py-12 xl:px-12 xl:py-14"
+            className="w-full max-w-[540px] rounded-[24px] border border-white/90 bg-white/94 px-4 py-6 shadow-[0_18px_55px_rgba(38,54,56,0.13)] backdrop-blur-md sm:rounded-[28px] sm:px-9 sm:py-10 lg:rounded-[42px] lg:px-10 lg:py-12 xl:px-12 xl:py-14"
           >
-            <header className="mb-8 flex items-center gap-4 sm:gap-5">
+            <header className="mb-6 flex items-center gap-3 sm:mb-8 sm:gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#F6E3CC] bg-[#FFF5E9] text-gray-900 sm:h-16 sm:w-16">
                 <UserRound size={28} strokeWidth={1.8} aria-hidden="true" />
               </div>
@@ -125,7 +125,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-4 text-xs sm:text-sm">
+              <div className="flex flex-col gap-2 text-xs min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between sm:text-sm">
                 <label className="flex cursor-pointer items-center gap-2.5 font-semibold text-gray-700">
                   <input
                     type="checkbox"

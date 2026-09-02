@@ -243,7 +243,7 @@ const ManageMateri = () => {
   return (
     <DashboardLayout role="dosen" title="Kelola Materi" subtitle="Ekstraksi modul PDF, klasifikasi video YouTube, dan struktur Knowledge Graph.">
 
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+      <div className="-mx-3 mb-6 flex gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:px-0">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -258,7 +258,7 @@ const ManageMateri = () => {
       </div>
 
       {tab === "pdf" && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-2xl">
+        <div className="max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
               <FileText size={20} />
@@ -317,7 +317,7 @@ const ManageMateri = () => {
       )}
 
       {tab === "youtube" && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-2xl">
+        <div className="max-w-2xl rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
               <Youtube size={20} />
@@ -789,7 +789,7 @@ const ManageMateri = () => {
 
           {editKonsepDropdown && <div className="fixed inset-0 z-10" onClick={() => setEditKonsepDropdown(false)} />}
 
-          <div className="flex gap-3 relative z-20">
+          <div className="relative z-20 flex flex-col gap-3 sm:flex-row">
             <button
               onClick={closeEditVideo}
               className="flex-1 py-3 rounded-2xl font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all"
@@ -818,7 +818,7 @@ const ManageMateri = () => {
             </p>
           </div>
           {deleteVideoError && <p className="text-sm text-red-600 font-medium">{deleteVideoError}</p>}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               onClick={() => { setDeleteVideoTarget(null); setDeleteVideoError("") }}
               className="flex-1 py-3 rounded-2xl font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all"

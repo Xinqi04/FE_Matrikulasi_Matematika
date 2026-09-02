@@ -80,7 +80,7 @@ const Penilaian = () => {
   }
 
   return <DashboardLayout role="dosen" title="Penilaian Jawaban" subtitle="Pilih modul dan jenis ujian. Mahasiswa yang mengumpulkan ditampilkan dari yang paling lama.">
-    <section className="mb-6 grid gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm md:grid-cols-2 xl:grid-cols-4">
+    <section className="mb-6 grid gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 md:grid-cols-2 xl:grid-cols-4">
       <Filter label="1. Modul" value={modulId} onChange={selectModul}>
         <option value="">Pilih modul</option>{modul.map((item) => <option key={item.id} value={item.id}>{item.nama_domain}</option>)}
       </Filter>

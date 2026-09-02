@@ -18,7 +18,7 @@ const UjianModul = () => {
           const selesai = modul.bab.filter((bab) => ["lanjut", "pengayaan"].includes(progressMap[bab.id]?.status)).length
           const ujian = data.ujian_modul.find((item) => item.modul_id === modul.id) || {}
           const pretestSelesai = ["menunggu_penilaian", "dinilai"].includes(ujian.pretest)
-          return <article key={modul.id} className="flex min-h-64 flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
+          return <article key={modul.id} className="flex min-h-64 flex-col rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md sm:p-6">
             <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><BookOpen size={22} /></span>
             <h2 className="text-lg font-semibold text-gray-900">{modul.nama_domain}</h2><p className="mt-1 text-sm text-gray-400">{modul.bab.length} bab</p>
             <div className="mt-5 flex-1 space-y-2 text-xs"><p className={`flex items-center gap-2 ${pretestSelesai ? "text-green-700" : "text-amber-700"}`}><CheckCircle2 size={14} /> Pretest {pretestSelesai ? "selesai" : "belum dikerjakan"}</p><p className="text-gray-500">Progres bab: {selesai}/{modul.bab.length} selesai</p></div>

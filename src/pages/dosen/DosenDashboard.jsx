@@ -30,7 +30,7 @@ const DosenDashboard = () => {
 
   return (
     <DashboardLayout role="dosen" title="Dashboard Overview" subtitle="Pantau progres materi, soal, dan penilaian mahasiswa.">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 md:gap-6 lg:grid-cols-4">
         <StatCard
           title="Mahasiswa Aktif"
           value={loading ? "-" : stats?.jumlah_mahasiswa_aktif ?? 0}
@@ -81,7 +81,7 @@ const DosenDashboard = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03 }}
-              className="p-4 rounded-xl border border-gray-100 bg-gray-50/30 flex items-center justify-between gap-3"
+              className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/30 p-3 sm:p-4"
             >
               <div className="min-w-0">
                 <p className="font-bold text-sm text-gray-900 truncate">{item.mahasiswa_nama}</p>
