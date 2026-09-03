@@ -125,7 +125,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 text-xs min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between sm:text-sm">
+              {/* <div className="flex flex-col gap-2 text-xs min-[380px]:flex-row min-[380px]:items-center min-[380px]:justify-between sm:text-sm">
                 <label className="flex cursor-pointer items-center gap-2.5 font-semibold text-gray-700">
                   <input
                     type="checkbox"
@@ -136,7 +136,7 @@ const Login = () => {
                   Ingat saya
                 </label>
                 <button type="button" className="font-semibold text-blue-700 transition hover:text-blue-800 hover:underline">Lupa password?</button>
-              </div>
+              </div> */}
 
               <Motion.button
                 whileTap={{ scale: 0.985 }}
