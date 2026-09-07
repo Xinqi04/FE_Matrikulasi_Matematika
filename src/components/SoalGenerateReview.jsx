@@ -1,3 +1,4 @@
+import MathPreview from "./MathPreview"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Loader2, CheckCircle2, XCircle, X, Save, Trash2, Sparkles } from "lucide-react"
@@ -142,6 +143,7 @@ const SoalGenerateReview = ({ jobId, babId, onSaved, onCancel }) => {
                   onChange={(e) => updateItem(item._key, { teks_soal: e.target.value })}
                   className="flex-1 px-3 py-2 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none transition-all text-sm text-slate-700"
                 />
+              <MathPreview value={item.teks_soal} />
                 <button
                   type="button"
                   onClick={() => removeItem(item._key)}
@@ -176,6 +178,7 @@ const SoalGenerateReview = ({ jobId, babId, onSaved, onCancel }) => {
                 onChange={(e) => updateItem(item._key, { jawaban_referensi: e.target.value })}
                 className="w-full px-3 py-2 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none transition-all text-xs text-slate-600"
               />
+              <MathPreview value={item.jawaban_referensi || ""} />
 
               <div className="flex flex-wrap gap-1.5">
                 {item.konsep.map((k) => (

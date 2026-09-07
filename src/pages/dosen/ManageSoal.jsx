@@ -1,3 +1,5 @@
+import MathPreview from "../../components/MathPreview"
+import MathText from "../../components/MathText"
 import { useEffect, useMemo, useState } from "react"
 import { motion as Motion } from "framer-motion"
 import { Plus, Trash2, Pencil, Sparkles, Loader2, X, AlertCircle, BookOpen, ChevronDown, CheckCircle2, ListChecks, Info } from "lucide-react"
@@ -287,8 +289,8 @@ const ManageSoal = () => {
                                   {s.tingkat_kesulitan && <Badge variant="gray">{s.tingkat_kesulitan}</Badge>}
                                   {s.untuk_ujian && <Badge variant="green">Pretest & Posttest</Badge>}
                                 </div>
-                                <p className="text-sm font-medium leading-6 text-gray-800">{s.teks_soal}</p>
-                                {s.jawaban_referensi && <p className="mt-2 text-xs text-gray-400">Referensi: {s.jawaban_referensi}</p>}
+                                <p className="text-sm font-medium leading-6 text-gray-800"><MathText>{s.teks_soal}</MathText></p>
+                                {s.jawaban_referensi && <p className="mt-2 text-xs text-gray-400">Referensi: <MathText>{s.jawaban_referensi}</MathText></p>}
                                 <div className="mt-3 flex flex-wrap gap-1">{s.konsep.map((k) => <Badge key={k} variant="green">{k}</Badge>)}</div>
                               </div>
                               <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -329,6 +331,7 @@ const ManageSoal = () => {
               onChange={(e) => setForm({ ...form, teks_soal: e.target.value })}
               className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all text-sm text-slate-700"
             />
+              <MathPreview value={form.teks_soal} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -365,6 +368,7 @@ const ManageSoal = () => {
               onChange={(e) => setForm({ ...form, jawaban_referensi: e.target.value })}
               className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all text-sm text-slate-700"
             />
+              <MathPreview value={form.jawaban_referensi} />
           </div>
 
           <div className="space-y-2">

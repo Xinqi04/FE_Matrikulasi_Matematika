@@ -1,6 +1,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+.math-text { overflow-wrap: anywhere; }
+.math-inline { display: inline-block; max-width: 100%; overflow-x: auto; vertical-align: middle; }
+.math-block { display: block; max-width: 100%; overflow-x: auto; margin-block: 0.75rem; }
+.math-block .katex-display { margin: 0; padding-block: 0.25rem; }
+.math-text .katex { font-size: 1.1em; }
+
 /*
  * MathDasar design tokens
  * The existing UI uses Tailwind's blue scale for primary actions. Redefining
