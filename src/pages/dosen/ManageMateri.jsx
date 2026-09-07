@@ -573,15 +573,14 @@ const ManageMateri = () => {
                   <th className="p-4 text-left font-semibold text-gray-600">Judul</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Channel</th>
                   <th className="p-4 text-left font-semibold text-gray-600">Konsep</th>
-                  <th className="p-4 text-center font-semibold text-gray-600">Status</th>
                   <th className="p-4 text-center font-semibold text-gray-600">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {kgLoading ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-gray-400">Memuat data...</td></tr>
+                  <tr><td colSpan={4} className="p-8 text-center text-gray-400">Memuat data...</td></tr>
                 ) : filteredVideo.length === 0 ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-gray-400">
+                  <tr><td colSpan={4} className="p-8 text-center text-gray-400">
                     {video.length === 0 ? "Belum ada video materi." : "Tidak ada video yang cocok dengan pencarian."}
                   </td></tr>
                 ) : pagedVideo.map((v) => (
@@ -599,9 +598,6 @@ const ManageMateri = () => {
                         ))}
                         {v.konsep.length > 3 && <span className="text-[11px] text-gray-400">+{v.konsep.length - 3}</span>}
                       </div>
-                    </td>
-                    <td className="p-4 text-center">
-                      <Badge variant={v.status_validasi === "valid" ? "green" : "gray"}>{v.status_validasi || "-"}</Badge>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center justify-center gap-1">
