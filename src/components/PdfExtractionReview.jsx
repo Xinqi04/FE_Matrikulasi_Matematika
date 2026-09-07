@@ -26,6 +26,12 @@ const PdfExtractionReview = ({ jobId, onSaved }) => {
         const data = await getJob(jobId)
         if (stop) return
         setJob(data)
+        if (data.result?.status_penyimpanan === "tersimpan") {
+          setSavedSummary(data.result.confirmation)
+          setSaveState("saved")
+        } else if (data.result?.status_penyimpanan === "dibuang") {
+          setDiscardState("discarded")
+        }
         if (data.status === "pending" || data.status === "running") {
           setTimeout(poll, 2000)
         } else if (data.status === "done" && data.result) {

@@ -249,3 +249,10 @@ memahami dampak perubahan versi package.
 - Jangan menyimpan token atau kredensial produksi di source code frontend.
 - `VITE_*` selalu dapat terlihat oleh browser; jangan menaruh secret/API key di sana.
 - Token login disimpan dalam `sessionStorage` dan hilang ketika sesi browser ditutup.
+# Tampilan rumus matematika
+
+Soal, referensi jawaban, dan penilaian menggunakan KaTeX. Pangkat sederhana lama seperti `x^2`, `2x^3`, `(x+1)^2`, dan `10^-2` otomatis ditampilkan sebagai pangkat tanpa mengubah data tersimpan.
+
+Untuk rumus lengkap, gunakan `$...$` atau `\(...\)` di dalam kalimat, misalnya `$\frac{1}{2}$`, `$\sqrt{x}$`, atau `$x^{n+1}$`. Gunakan `$$...$$` atau `\[...\]` untuk blok rumus. Tanggal/pecahan polos tidak dikonversi otomatis supaya artinya tidak berubah. Form soal dan review hasil AI menyediakan pratinjau. Sintaks tidak valid tetap ditampilkan sebagai teks; HTML mentah dan tautan tidak tepercaya tidak dieksekusi.
+
+Pengujian renderer: `node --test tests/mathText.test.js`.

@@ -1,3 +1,4 @@
+import MathText from "../../components/MathText"
 import { useEffect, useMemo, useState } from "react"
 import { useLocation, useNavigate, useParams } from "react-router-dom"
 import { AnimatePresence, motion as Motion } from "framer-motion"
@@ -144,7 +145,7 @@ const BabSoal = () => {
                     <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-700">{index + 1}</span><Badge variant={item.tipe === "esai" ? "purple" : "blue"}>{item.tipe.replace("_", " ")}</Badge></div>
                     {answered && <span className="flex items-center gap-1 text-xs font-semibold text-blue-700"><Check size={14} /> Terjawab</span>}
                   </div>
-                  <p className="mb-4 whitespace-pre-line text-[15px] font-medium leading-7 text-gray-900">{item.teks_soal}</p>
+                  <p className="mb-4 whitespace-pre-line text-[15px] font-medium leading-7 text-gray-900"><MathText>{item.teks_soal}</MathText></p>
                   <label htmlFor={`jawaban-${item.id}`} className="mb-2 block text-xs font-semibold text-gray-500">Jawaban kamu</label>
                   <textarea
                     id={`jawaban-${item.id}`}
